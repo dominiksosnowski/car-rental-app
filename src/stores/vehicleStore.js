@@ -1,33 +1,73 @@
+// src/stores/vehicleStore.js
 import { defineStore } from 'pinia'
 import { supabase } from '@/lib/supabase'
 
 export const useVehicleStore = defineStore('vehicle', {
   state: () => ({
+    // lista aktywnych (nie sprzedanych)
     list: [],
+    // lista sprzedanych/archiwalnych
+    archived: [],
     loading: false,
-    error: null,
+    error:   null,
   }),
+
   actions: {
-    async fetchAll() {
+    /**
+     * Pobierz wszystkie pojazdy nieoznaczone jako sprzedane
+     */
+    async fetchActive() {
       this.loading = true
+      this.error   = null
+
       const { data, error } = await supabase
         .from('vehicles')
         .select('*')
+        .eq('archived', false)
         .order('created_at', { ascending: false })
 
-      if (error) this.error = error.message
-      else this.list = data
+      if (error) {
+        this.error = error.message
+      } else {
+        this.list = data
+      }
 
       this.loading = false
     },
 
-    async addVehicle(payload) {
+    /**
+     * Pobierz wszystkie pojazdy oznaczone jako sprzedane
+     */
+    async fetchArchived() {
       this.loading = true
-      this.error = null
+      this.error   = null
 
       const { data, error } = await supabase
         .from('vehicles')
-        .insert([{ ...payload }])
+        .select('*')
+        .eq('archived', true)
+        .order('created_at',   { ascending: false })
+
+      if (error) {
+        this.error = error.message
+      } else {
+        this.archived = data
+      }
+
+      this.loading = false
+    },
+
+    /**
+     * Dodaj nowy pojazd – zawsze archived: false
+     */
+    async addVehicle(payload) {
+      this.loading = true
+      this.error   = null
+
+      const toInsert = { ...payload, archived: false }
+      const { data, error } = await supabase
+        .from('vehicles')
+        .insert([toInsert])
         .select()
 
       this.loading = false
@@ -37,34 +77,17 @@ export const useVehicleStore = defineStore('vehicle', {
         return null
       }
 
+      // dodajemy na początek listy aktywnych
       this.list.unshift(data[0])
       return data[0]
     },
 
-        // Usuń pojazd
-    async deleteVehicle(id) {
-      this.loading = true
-      this.error = null
-
-      const { error } = await supabase
-        .from('vehicles')
-        .delete()
-        .eq('id', id)
-
-      this.loading = false
-
-      if (error) {
-        this.error = error.message
-      } else {
-        // odfiltruj z listy
-        this.list = this.list.filter(v => v.id !== id)
-      }
-    },
-
-    // Zaktualizuj pojazd
+    /**
+     * Aktualizuj dane pojazdu
+     */
     async updateVehicle(id, payload) {
       this.loading = true
-      this.error = null
+      this.error   = null
 
       const { data, error } = await supabase
         .from('vehicles')
@@ -79,10 +102,37 @@ export const useVehicleStore = defineStore('vehicle', {
         return null
       }
 
-      // zamień w liście zaktualizowany rekord
+      // zamieniamy w liście aktywnych
       this.list = this.list.map(v => v.id === id ? data[0] : v)
       return data[0]
-    }
-  },
+    },
 
+    /**
+     * Oznacz pojazd jako sprzedany (archiwizuj):
+     *  - ustawia archived=true
+     *  - usuwa z listy aktywnych
+     *  - dopisuje do archiwum
+     */
+    async archiveVehicle(id) {
+      this.loading = true
+      this.error   = null
+
+      const { data, error } = await supabase
+        .from('vehicles')
+        .update({ archived: true })
+        .eq('id', id)
+        .select()
+
+      this.loading = false
+
+      if (error) {
+        this.error = error.message
+      } else {
+        // odfiltruj z aktywnych
+        this.list = this.list.filter(v => v.id !== id)
+        // dopisz do archiwum
+        this.archived.unshift(data[0])
+      }
+    }
+  }
 })

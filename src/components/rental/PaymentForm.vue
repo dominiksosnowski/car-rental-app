@@ -1,85 +1,160 @@
 <!-- src/components/rental/PaymentForm.vue -->
 <template>
-  <form @submit.prevent="onSubmit" class="payment-form">
-    <label>
-      Kwota
-      <input v-model.number="amount" type="number" step="0.01" min="0.01" required/>
-    </label>
+  <!-- ograniczamy szerokość formularza do 50% i centrujemy -->
+  <div class="payment-form-wrapper">
+    <v-form @submit.prevent="onSubmit" ref="form">
+      <v-row dense align="center">
+        <!-- Kwota -->
+        <v-col cols="12" md="4">
+          <v-text-field
+            v-model.number="amount"
+            label="Kwota"
+            type="number"
+            step="0.01"
+            min="0.01"
+            required
+          />
+        </v-col>
 
-    <label>
-      Data płatności
-      <input v-model="paidAt" type="datetime-local" required/>
-    </label>
+        <!-- Data wpłaty – tylko data -->
+        <v-col cols="12" md="4">
+          <v-menu
+            v-model="menuDate"
+            :close-on-content-click="false"
+            transition="scale-transition"
+            offset-y
+            min-width="auto"
+          >
+            <template #activator="{ props }">
+              <v-text-field
+                v-bind="props"
+                v-model="displayDate"
+                label="Data wpłaty"
+                readonly
+                prepend-inner-icon="mdi-calendar"
+                required
+              />
+            </template>
+            <v-date-picker
+              v-model="date"
+              locale="pl"
+              first-day-of-week="1"
+              :min="minDate"
+              @update:model-value="menuDate = false"
+            />
+          </v-menu>
+        </v-col>
 
-    <label>
-      Metoda
-      <select v-model="method">
-        <option value="">– wybierz –</option>
-        <option value="gotówka">gotówka</option>
-        <option value="przelew">przelew</option>
-        <option value="karta">karta</option>
-      </select>
-    </label>
+        <!-- Metoda płatności -->
+        <v-col cols="12" md="4">
+          <v-select
+            v-model="method"
+            :items="methods"
+            label="Metoda"
+            clearable
+            required
+          />
+        </v-col>
 
-    <label>
-      Notatki
-      <textarea v-model="notes" rows="2"></textarea>
-    </label>
+        <!-- Notatki -->
+        <v-col cols="12">
+          <v-textarea
+            v-model="notes"
+            label="Notatki"
+            rows="2"
+          />
+        </v-col>
+      </v-row>
 
-    <button type="submit" :disabled="loading">
-      {{ loading ? 'Dodaj…' : 'Dodaj wpłatę' }}
-    </button>
-    <p v-if="error" class="error">{{ error }}</p>
-  </form>
+      <!-- Przycisk -->
+      <v-row>
+        <v-col cols="12" class="text-right">
+          <v-btn :loading="loading" color="primary" type="submit">
+            {{ loading ? 'Dodaj…' : 'Dodaj wpłatę' }}
+          </v-btn>
+        </v-col>
+      </v-row>
+
+      <!-- Błąd -->
+      <v-alert
+        v-if="error"
+        type="error"
+        variant="outlined"
+        class="mt-2"
+      >
+        {{ error }}
+      </v-alert>
+    </v-form>
+  </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { storeToRefs } from 'pinia'
-import { usePaymentStore } from '@/stores/paymentStore'
+import { ref, computed }    from 'vue'
+import { storeToRefs }      from 'pinia'
+import { usePaymentStore }  from '@/stores/paymentStore'
 
 const props = defineProps({
-  rentalId: { type: String, required: true }
+  rentalId: { type: [String, Number], required: true }
 })
 const emit = defineEmits(['added'])
 
 const paymentStore = usePaymentStore()
 const { loading, error } = storeToRefs(paymentStore)
 
-const amount  = ref(0)
-const paidAt  = ref(new Date().toISOString().slice(0,16))
-const method  = ref('')
-const notes   = ref('')
+const amount   = ref(0)
+const date     = ref(new Date().toISOString().substr(0,10))
+const menuDate = ref(false)
+
+const method = ref(null)
+const notes  = ref('')
+
+const methods = ['gotówka','przelew','karta']
+
+const minDate = new Date().toISOString().substr(0,10)
+
+// gotowy ISO + północ lokalna
+const paidAt = computed(() =>
+  date.value
+    ? new Date(`${date.value}T00:00`).toISOString()
+    : ''
+)
+
+// format do pola tekstowego
+const displayDate = computed(() =>
+  date.value
+    ? new Intl.DateTimeFormat('pl-PL', {
+        day: '2-digit', month: '2-digit', year: 'numeric'
+      }).format(new Date(date.value))
+    : ''
+)
 
 async function onSubmit() {
   loading.value = true
+
   const payload = {
-    rental_id:     props.rentalId,
-    amount:        amount.value,
-    payment_method: method.value || null,
-    notes:         notes.value || null,
-    paid_at:       new Date(paidAt.value).toISOString(),
+    rental_id:      props.rentalId,
+    amount:         amount.value,
+    payment_method: method.value,
+    notes:          notes.value || null,
+    paid_at:        paidAt.value
   }
 
   const added = await paymentStore.addPayment(payload)
   loading.value = false
+
   if (added) {
     amount.value = 0
-    method.value = ''
+    method.value = null
     notes.value  = ''
-    paidAt.value = new Date().toISOString().slice(0,16)
+    date.value   = new Date().toISOString().substr(0,10)
     emit('added', added)
   }
 }
 </script>
 
 <style scoped>
-.payment-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+.payment-form-wrapper {
+  max-width: 50%;
+  margin: 0 auto;
 }
-label { display: flex; flex-direction: column;}
-button { padding: 0.4rem; margin-top: 0.5rem; }
-.error { color: red; }
 </style>

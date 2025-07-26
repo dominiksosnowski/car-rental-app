@@ -1,77 +1,129 @@
+<!-- src/components/rental/RentalForm.vue -->
 <template>
-  <form @submit.prevent="onSubmit" class="rental-form">
-    <label>
-      Imię
-      <input v-model="clientFirst" type="text" required />
-    </label>
+  <v-form @submit.prevent="onSubmit" ref="form">
+    <v-row>
+      <v-col cols="12" md="6">
+        <v-text-field
+          v-model="clientFirst"
+          label="Imię"
+          required
+        />
+      </v-col>
 
-    <label>
-      Nazwisko
-      <input v-model="clientLast" type="text" required />
-    </label>
+      <v-col cols="12" md="6">
+        <v-text-field
+          v-model="clientLast"
+          label="Nazwisko"
+          required
+        />
+      </v-col>
 
-    <label>
-      Telefon
-      <input v-model="clientPhone" type="tel" required />
-    </label>
+      <v-col cols="12" md="6">
+        <v-text-field
+          v-model="clientPhone"
+          label="Telefon"
+          type="tel"
+          required
+        />
+      </v-col>
 
-    <!-- DODANE POLE: wybór pojazdu -->
-    <label>
-      Pojazd
-      <select v-model="vehicleId" required>
-        <option
-          v-for="v in vehiclesList"
-          :key="v.id"
-          :value="v.id"
+      <v-col cols="12" md="6">
+        <v-select
+          v-model="vehicleId"
+          :items="vehicles"
+          item-title="label"
+          item-value="id"
+          label="Pojazd"
+          required
+        />
+      </v-col>
+
+      <v-col cols="6" md="3">
+        <v-text-field
+          v-model="startDate"
+          label="Start"
+          type="date"
+          required
+        />
+      </v-col>
+      <v-col cols="6" md="3">
+        <v-text-field
+          v-model="endDate"
+          label="Koniec"
+          type="date"
+          required
+        />
+      </v-col>
+
+      <v-col cols="6" md="3">
+        <v-text-field
+          v-model.number="dailyRate"
+          label="Stawka (doba)"
+          type="number"
+          min="0"
+          step="0.01"
+          required
+        />
+      </v-col>
+      <v-col cols="6" md="3">
+        <v-text-field
+          v-model.number="monthlyRate"
+          label="Stawka (miesiąc)"
+          type="number"
+          min="0"
+          step="0.01"
+          required
+        />
+      </v-col>
+
+      <v-col cols="12" md="6">
+        <v-checkbox
+          v-model="deposit"
+          label="Kaucja"
+        />
+      </v-col>
+    </v-row>
+
+    <v-col cols="12">
+      <v-textarea
+         v-model="notes"
+         label="Notatki"
+         rows="3"
+         auto-grow
+       />
+     </v-col>
+
+    <v-row class="mt-4">
+      <v-col cols="12" class="text-right">
+        <v-btn text class="ml-2" @click="emitCancel">
+          Anuluj
+        </v-btn>
+        <v-btn
+          color="primary"
+          :loading="loading"
+          type="submit"
         >
-          {{ v.brand }} {{ v.model }} ({{ v.reg_number }})
-        </option>
-      </select>
-    </label>
+          {{ loading
+            ? 'Zapisywanie…'
+            : isEdit
+              ? 'Zapisz zmiany'
+              : 'Dodaj wypożyczenie' }}
+        </v-btn>
 
-    <label>
-      Start
-      <input v-model="startDate" type="date" required />
-    </label>
+        <!-- zawsze pokazuj przycisk Anuluj -->
 
-    <label>
-      Koniec
-      <input v-model="endDate" type="date" required />
-    </label>
+      </v-col>
+    </v-row>
 
-    <label>
-      Stawka (doba)
-      <input
-        v-model.number="dailyRate"
-        type="number"
-        step="0.01"
-        min="0"
-        required
-      />
-    </label>
-
-    <label>
-      Stawka (miesiąc)
-      <input
-        v-model.number="monthlyRate"
-        type="number"
-        step="0.01"
-        min="0"
-        required
-      />
-    </label>
-
-    <label class="checkbox">
-      <input v-model="deposit" type="checkbox" />
-      Kaucja (tak/nie)
-    </label>
-
-    <button type="submit" :disabled="loading">
-      {{ loading ? 'Zapisywanie…' : isEdit ? 'Zapisz zmiany' : 'Dodaj wypożyczenie' }}
-    </button>
-
-    <p v-if="error" class="error">{{ error }}</p>
-  </form>
+    <v-alert
+      v-if="error"
+      color="error"
+      variant="outlined"
+      class="mt-4"
+    >
+      {{ error }}
+    </v-alert>
+  </v-form>
 </template>
 
 <script setup>
@@ -95,16 +147,26 @@ const endDate     = ref(props.rental?.end_date     || '')
 const dailyRate   = ref(props.rental?.daily_rate   || 0)
 const monthlyRate = ref(props.rental?.monthly_rate || 0)
 const deposit     = ref(props.rental?.deposit      || false)
+const notes       = ref(props.rental?.notes        || '')
 
 const vehicleStore = useVehicleStore()
 const rentalStore  = useRentalStore()
 
-// reactive refs
-const { list: vehiclesList } = storeToRefs(vehicleStore)
-const { loading, error }     = storeToRefs(rentalStore)
+const { list: vehiclesRaw } = storeToRefs(vehicleStore)
+const { loading, error }    = storeToRefs(rentalStore)
 
-// pobierz pojazdy do selecta
-onMounted(() => vehicleStore.fetchAll())
+onMounted(() => vehicleStore.fetchActive())
+
+const vehicles = computed(() =>
+  vehiclesRaw.value.map(v => ({
+    id:    v.id,
+    label: `${v.brand} ${v.model} (${v.reg_number})`
+  }))
+)
+
+function emitCancel() {
+  emit('cancel')
+}
 
 async function onSubmit() {
   loading.value = true
@@ -120,6 +182,7 @@ async function onSubmit() {
     daily_rate:    dailyRate.value,
     monthly_rate:  monthlyRate.value,
     deposit:       deposit.value,
+    notes:         notes.value,  
   }
 
   let saved
@@ -136,33 +199,3 @@ async function onSubmit() {
   }
 }
 </script>
-
-<style scoped>
-.rental-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  max-width: 400px;
-}
-
-label {
-  display: flex;
-  flex-direction: column;
-}
-
-label.checkbox {
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-button {
-  padding: 0.5rem;
-  cursor: pointer;
-}
-
-.error {
-  color: red;
-  margin-top: 0.5rem;
-}
-</style>

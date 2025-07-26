@@ -1,14 +1,14 @@
 <template>
     <v-app>
     <v-app-bar app color="primary" dark>
-      <v-toolbar-title>Wypożyczalnia</v-toolbar-title>
+      <v-toolbar-title>Warsztat</v-toolbar-title>
       <v-spacer/>
       <v-btn text to="/Dashboard">Strona główna</v-btn>
-      <v-btn text to="/rental/RentalDashboard">Podsumowanie</v-btn>
-      <v-btn text to="/rental/Vehicles">Pojazdy</v-btn>
-      <v-btn text to="/rental/Rentals">Wypożyczenia</v-btn>
-      <v-btn text to="/rental/Repairs">Naprawy</v-btn>
-      <v-btn text to="/rental/Reservations">Rezerwacje</v-btn>
+      <v-btn text to="/workshop/WorkshopDashboard">Podsumowanie</v-btn>
+      <v-btn text to="/workshop/completed">Zakończone naprawy</v-btn>
+      <v-btn text to="/workshop/in-progress">Aktualne naprawy</v-btn>
+      <v-btn text to="/workshop/payments">Płatności</v-btn>
+      <v-btn text to="/workshop/scheduled">Umówione pojazdy</v-btn>
     </v-app-bar>
 
     <v-main>
@@ -29,8 +29,8 @@ const router = useRouter()
 function go(name) {
   router.push({ name })
 }
+
+
+// zapewnij, że aktualna zakładka jest wyróżniona przy odświeżeniu
+
 </script>
-
-<style scoped>
-
-</style>

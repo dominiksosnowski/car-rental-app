@@ -52,23 +52,5 @@ const handleSubmit = async () => {
 
 
 <style scoped>
-.login-container {
-  max-width: 320px;
-  margin: 2rem auto;
-  display: flex;
-  flex-direction: column;
-}
-input {
-  width: 100%;
-  margin: 0.5rem 0 1rem;
-  padding: 0.5rem;
-}
-button {
-  padding: 0.5rem;
-  width: 100%;
-}
-.error {
-  color: red;
-  margin-top: 1rem;
-}
+
 </style>

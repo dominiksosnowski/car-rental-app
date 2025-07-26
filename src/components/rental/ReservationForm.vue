@@ -1,87 +1,131 @@
+<!-- src/components/rental/ReservationForm.vue -->
 <template>
-  <form @submit.prevent="onSubmit" class="reservation-form">
-    <label>
-      Imię
-      <input v-model="firstName" type="text" required />
-    </label>
+  <v-form @submit.prevent="onSubmit" ref="form">
+    <v-row>
+      <!-- Imię i nazwisko -->
+      <v-col cols="12" md="6">
+        <v-text-field v-model="firstName" label="Imię" required />
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-text-field v-model="lastName" label="Nazwisko" required />
+      </v-col>
 
-    <label>
-      Nazwisko
-      <input v-model="lastName" type="text" required />
-    </label>
+      <!-- Telefon -->
+      <v-col cols="12" md="6">
+        <v-text-field v-model="phone" label="Telefon" type="tel" required />
+      </v-col>
 
-    <label>
-      Telefon
-      <input v-model="phone" type="tel" required />
-    </label>
-    <label>
-      Pojazd
-      <select v-model="vehicleId" required>
-        <option
-          v-for="v in vehiclesList"
-          :key="v.id"
-          :value="v.id"
+      <!-- Start rezerwacji -->
+      <v-col cols="12" md="3">
+        <v-menu
+          v-model="menuStart"
+          :close-on-content-click="false"
+          transition="scale-transition"
+          offset-y
+          min-width="auto"
         >
-          {{ v.brand }} {{ v.model }} ({{ v.reg_number }})
-        </option>
-      </select>
-    </label>
-    <label>
-      Start
-      <input v-model="startDate" type="date" required />
-    </label>
+          <template #activator="{ props }">
+            <v-text-field
+              v-bind="props"
+              v-model="startDate"
+              label="Start"
+              readonly
+              prepend-inner-icon="mdi-calendar"
+              required
+            />
+          </template>
+          <v-date-picker
+            v-model="startDate"
+            locale="pl"
+            first-day-of-week="1"
+            value-format="yyyy-MM-dd"
+            @update:model-value="menuStart = false"
+          />
+        </v-menu>
+      </v-col>
 
-    <label>
-      Koniec
-      <input v-model="endDate" type="date" required />
-    </label>
-
-    <label>
-      Pojazd
-      <select
-        v-model="vehicleId"
-        :disabled="!startDate || !endDate"
-        required
-      >
-        <option
-          v-for="v in availableVehicles"
-          :key="v.id"
-          :value="v.id"
+      <!-- Koniec rezerwacji -->
+      <v-col cols="12" md="3">
+        <v-menu
+          v-model="menuEnd"
+          :close-on-content-click="false"
+          transition="scale-transition"
+          offset-y
+          min-width="auto"
         >
-          {{ v.brand }} {{ v.model }} ({{ v.reg_number }})
-        </option>
-      </select>
-    </label>
+          <template #activator="{ props }">
+            <v-text-field
+              v-bind="props"
+              v-model="endDate"
+              label="Koniec"
+              readonly
+              prepend-inner-icon="mdi-calendar"
+              required
+            />
+          </template>
+          <v-date-picker
+            v-model="endDate"
+            locale="pl"
+            first-day-of-week="1"
+            value-format="yyyy-MM-dd"
+            @update:model-value="menuEnd = false"
+          />
+        </v-menu>
+      </v-col>
 
-    <p
-      v-if="startDate && endDate && availableVehicles.length === 0"
-      class="no-vehicles"
-    >
-      Brak dostępnych pojazdów w wybranym terminie.
-    </p>
+      <!-- Wybór pojazdu -->
+      <v-col cols="12" md="6">
+        <v-select
+          v-model="vehicleId"
+          :items="vehicleOptions"
+          item-title="text"
+          item-value="value"
+          label="Pojazd"
+          :disabled="!startDate || !endDate || vehicleOptions.length === 0"
+          required
+        />
+        <v-alert
+          v-if="startDate && endDate && vehicleOptions.length === 0"
+          color="info"
+          variant="outlined"
+          class="mt-2"
+        >
+          Brak dostępnych pojazdów w wybranym terminie.
+        </v-alert>
+      </v-col>
 
-    <label>
-      Notatki
-      <textarea v-model="notes" rows="3"></textarea>
-    </label>
+      <!-- Notatki -->
+      <v-col cols="12">
+        <v-textarea v-model="notes" label="Notatki" rows="3" />
+      </v-col>
+    </v-row>
 
-    <button type="submit" :disabled="loading">
-      {{ loading ? 'Rezerwuję…' : 'Zarezerwuj' }}
-    </button>
+    <!-- Akcja -->
+    <v-row class="mt-4">
+      <v-col cols="12" class="text-right">
+        <v-btn text class="mr-2" @click="cancel">Anuluj</v-btn>
+        <v-btn type="submit" color="primary" :loading="loading">
+          {{ loading ? 'Rezerwuję…' : 'Zarezerwuj' }}
+        </v-btn>
+      </v-col>
+    </v-row>
 
-    <p v-if="error" class="error">{{ error }}</p>
-  </form>
+    <!-- Błąd -->
+    <v-alert v-if="error" color="error" variant="outlined" class="mt-4">
+      {{ error }}
+    </v-alert>
+  </v-form>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { storeToRefs }            from 'pinia'
-import { useVehicleStore }        from '@/stores/vehicleStore'
-import { useReservationStore }    from '@/stores/reservationStore'
+import { storeToRefs }             from 'pinia'
+import { useVehicleStore }         from '@/stores/vehicleStore'
+import { useReservationStore }     from '@/stores/reservationStore'
+import { useRentalStore }          from '@/stores/rentalStore'
 
-const emit = defineEmits(['added'])
+const emit = defineEmits(['added','cancel'])
 
-// pola formularza
 const firstName = ref('')
 const lastName  = ref('')
 const phone     = ref('')
@@ -90,107 +134,116 @@ const endDate   = ref('')
 const vehicleId = ref('')
 const notes     = ref('')
 
-// store'y
+const menuStart = ref(false)
+const menuEnd   = ref(false)
+
 const vehicleStore     = useVehicleStore()
 const reservationStore = useReservationStore()
+const rentalStore      = useRentalStore()
 
-// reactive refs
-const { list: vehicles }      = storeToRefs(vehicleStore)
-const { list: reservations,
-        loading,
-        error }              = storeToRefs(reservationStore)
+const { list: vehicles }               = storeToRefs(vehicleStore)
+const { list: reservations, loading, error } = storeToRefs(reservationStore)
+const { list: rentals }                = storeToRefs(rentalStore)
 
-// ładujemy dane przy montowaniu
 onMounted(async () => {
-  await vehicleStore.fetchAll()
-  await reservationStore.fetchAll()
+  await Promise.all([
+    vehicleStore.fetchActive(),
+    reservationStore.fetchAll(),
+    rentalStore.fetchAll()
+  ])
 })
 
-// obliczamy ID pojazdów zajętych w podanym okresie
 const busyVehicleIds = computed(() => {
   if (!startDate.value || !endDate.value) return []
-  return reservations.value
-    .filter(r =>
-      // prawdziwe nachodzenie przedziałów: 
-      // r.start_date < endDate && r.end_date > startDate
-      r.start_date < endDate.value &&
-      r.end_date   > startDate.value
-    )
+
+  const newStart = new Date(startDate.value)
+  const newEnd   = new Date(endDate.value)
+
+  // 1) Rentals: if no end_date → infinite busy; otherwise check overlap
+  const fromRentals = rentals.value
+    .filter(r => !r.archived && r.vehicle_id)
+    .filter(r => {
+      const rStart = new Date(r.start_date)
+      const rEnd   = r.end_date
+        ? new Date(r.end_date)
+        : new Date(8640000000000000)  // treat no end_date as never returned
+      return rStart < newEnd && rEnd > newStart
+    })
     .map(r => r.vehicle_id)
+
+  // 2) Reservations: as before
+  const fromReservations = reservations.value
+    .filter(r => r.start_date)
+    .filter(r => {
+      const resStart = new Date(r.start_date)
+      const resEnd   = r.end_date
+        ? new Date(r.end_date)
+        : new Date(r.start_date)
+      return resStart < newEnd && resEnd > newStart
+    })
+    .map(r => r.vehicle_id)
+
+  return Array.from(new Set([...fromRentals, ...fromReservations]))
 })
 
-// lista dostępnych pojazdów
 const availableVehicles = computed(() =>
-  vehicles.value.filter(v => !busyVehicleIds.value.includes(v.id))
+  vehicles.value.filter(v =>
+    v.status !== 'unavailable' &&
+    !busyVehicleIds.value.includes(v.id)
+  )
 )
+
+const vehicleOptions = computed(() =>
+  availableVehicles.value.map(v => ({
+    text:  `${v.brand} ${v.model} ${v.reg_number}`,
+    value: v.id
+  }))
+)
+
+function cancel() {
+  emit('cancel')
+}
 
 async function onSubmit() {
   loading.value = true
   error.value   = null
 
+  // Walidacja konfliktu
+  const conflict = await reservationStore.hasConflict(
+    vehicleId.value,
+    // wymuś czysty format YYYY-MM-DD przed sprawdzeniem
+    new Date(startDate.value).toISOString().slice(0,10),
+    new Date(endDate.value).toISOString().slice(0,10)
+  )
+  if (conflict) {
+    loading.value = false
+    error.value   = 'Ten pojazd jest już zajęty w tym terminie.'
+    return
+  }
+
+  // Przygotuj payload z dokładnym formatem YYYY-MM-DD
   const payload = {
     first_name: firstName.value,
     last_name:  lastName.value,
     phone:      phone.value,
     vehicle_id: vehicleId.value,
-    start_date: startDate.value,
-    end_date:   endDate.value,
-    notes:      notes.value,
-  }
-
-  // finalne sprawdzenie konfliktu (opcjonalne, dla bezpieczeństwa)
-  const conflict = await reservationStore.hasConflict(
-    vehicleId.value,
-    startDate.value,
-    endDate.value
-  )
-  if (conflict) {
-    loading.value = false
-    error.value   = 'Ten pojazd jest już zarezerwowany w tym terminie.'
-    return
+    start_date: new Date(startDate.value).toISOString().slice(0,10),
+    end_date:   new Date(endDate.value).toISOString().slice(0,10),
+    notes:      notes.value
   }
 
   const result = await reservationStore.addReservation(payload)
   loading.value = false
 
   if (result) {
-    // reset formularza
-    firstName.value = lastName.value = phone.value = ''
-    startDate.value = endDate.value = vehicleId.value = notes.value = ''
+    firstName.value = ''
+    lastName.value  = ''
+    phone.value     = ''
+    startDate.value = ''
+    endDate.value   = ''
+    vehicleId.value = ''
+    notes.value     = ''
     emit('added', result)
   }
 }
 </script>
-
-<style scoped>
-.reservation-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  max-width: 400px;
-}
-
-label {
-  display: flex;
-  flex-direction: column;
-}
-
-select:disabled {
-  opacity: 0.6;
-}
-
-.no-vehicles {
-  color: #666;
-  font-style: italic;
-}
-
-button {
-  padding: 0.5rem;
-  cursor: pointer;
-}
-
-.error {
-  color: red;
-  margin-top: 0.5rem;
-}
-</style>

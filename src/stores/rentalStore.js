@@ -14,17 +14,45 @@ export const useRentalStore = defineStore('rental', {
       this.loading = true
       const { data, error } = await supabase
         .from('rentals')
-        .select(`
-          *,
-          vehicles (
-            brand,
-            model,
-            reg_number
-          )
-        `)
+       .select(`*, vehicles:vehicle_id(brand, model, reg_number)`)
+        .eq('archived', false)              // <-- tylko aktywne
         .order('start_date', { ascending: false })
       this.loading = false
 
+      if (error) this.error = error.message
+      else      this.list  = data
+    },
+
+    async archiveRental(id) {
+      this.loading = true
+      this.error   = null
+
+      const { data, error } = await supabase
+        .from('rentals')
+        .update({ archived: true })
+        .eq('id', id)
+
+      this.loading = false
+      if (error) {
+        this.error = error.message
+      } else {
+        // usuwamy z lokalnej listy
+        this.list = this.list.filter(r => r.id !== id)
+      }
+    },
+
+    // (Opcjonalnie) Pobieramy zarchiwizowane wypożyczenia
+    async fetchArchived() {
+      this.loading = true
+      this.error   = null
+
+      const { data, error } = await supabase
+        .from('rentals')
+        .select(`*, vehicles:vehicle_id(brand, model, reg_number)`)
+        .eq('archived', true)
+        .order('start_date', { ascending: false })
+
+      this.loading = false
       if (error) this.error = error.message
       else      this.list  = data
     },
@@ -39,7 +67,8 @@ export const useRentalStore = defineStore('rental', {
         .insert([payload])
         .select(`
           *,
-          vehicles (
+          vehicles:vehicle_id (
+            id,
             brand,
             model,
             reg_number

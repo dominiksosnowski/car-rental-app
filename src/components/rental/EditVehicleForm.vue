@@ -1,40 +1,77 @@
 <template>
-  <div class="edit-form-overlay">
-    <form @submit.prevent="onSubmit" class="edit-form">
-      <h3>Edytuj pojazd</h3>
+  <v-form @submit.prevent="onSubmit" ref="form">
+    <v-row>
+      <v-col cols="12" md="6">
+        <v-text-field
+          v-model="brand"
+          label="Marka"
+          required
+        />
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-text-field
+          v-model="model"
+          label="Model"
+          required
+        />
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-text-field
+          v-model="regNumber"
+          label="Nr rej."
+          required
+        />
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-select
+          v-model="status"
+          :items="statusOptions"
+          item-title="label"
+          item-value="value"
+          label="Status"
+          required
+        />
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-text-field
+          v-model="inspectionDate"
+          label="Badanie techniczne"
+          type="date"
+          required
+        />
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-text-field
+          v-model="insuranceDate"
+          label="Ubezpieczenie"
+          type="date"
+          required
+        />
+      </v-col>
+    </v-row>
 
-      <label>Marka
-        <input v-model="brand" type="text" required />
-      </label>
-      <label>Model
-        <input v-model="model" type="text" required />
-      </label>
-      <label>Registration Number
-        <input v-model="regNumber" type="text" required />
-      </label>
-      <label>Status
-        <select v-model="status">
-          <option value="available">Dostępny</option>
-          <option value="unavailable">Niedostępny</option>
-        </select>
-      </label>
-      <label>Badanie techniczne
-        <input v-model="inspectionDate" type="date" required />
-      </label>
-      <label>Ubezpieczenie
-        <input v-model="insuranceDate" type="date" required />
-      </label>
+    <v-row class="mt-4">
+      <v-col cols="12" class="text-right">
+        <v-btn text @click="cancel">Anuluj</v-btn>
+        <v-btn
+          color="primary"
+          :loading="loading"
+          type="submit"
+        >
+          Zapisz zmiany
+        </v-btn>
+      </v-col>
+    </v-row>
 
-      <div class="buttons">
-        <button type="submit" :disabled="loading">
-          {{ loading ? 'Zapisywanie...' : 'Zapisz' }}
-        </button>
-        <button type="button" @click="$emit('cancel')">Anuluj</button>
-      </div>
-
-      <p v-if="error" class="error">{{ error }}</p>
-    </form>
-  </div>
+    <v-alert
+      v-if="error"
+      color="error"
+      variant="outlined"
+      class="mt-4"
+    >
+      {{ error }}
+    </v-alert>
+  </v-form>
 </template>
 
 <script setup>
@@ -44,7 +81,7 @@ import { useVehicleStore } from '@/stores/vehicleStore'
 const props = defineProps({
   vehicle: { type: Object, required: true }
 })
-const emit = defineEmits(['updated', 'cancel'])
+const emit = defineEmits(['updated','cancel'])
 
 const brand          = ref(props.vehicle.brand)
 const model          = ref(props.vehicle.model)
@@ -53,21 +90,32 @@ const status         = ref(props.vehicle.status)
 const inspectionDate = ref(props.vehicle.inspection_date)
 const insuranceDate  = ref(props.vehicle.insurance_date)
 
+watch(
+  () => props.vehicle,
+  v => {
+    brand.value          = v.brand
+    model.value          = v.model
+    regNumber.value      = v.reg_number
+    status.value         = v.status
+    inspectionDate.value = v.inspection_date
+    insuranceDate.value  = v.insurance_date
+  }
+)
+
+const statusOptions = [
+  { label: 'Dostępny',    value: 'available'   },
+  { label: 'Niedostępny', value: 'unavailable' }
+]
+
 const store   = useVehicleStore()
 const loading = ref(false)
 const error   = ref(null)
 
-// gdy props się zmieni, nadpisz lokalne refy
-watch(() => props.vehicle, (v) => {
-  brand.value          = v.brand
-  model.value          = v.model
-  regNumber.value      = v.reg_number
-  status.value         = v.status
-  inspectionDate.value = v.inspection_date
-  insuranceDate.value  = v.insurance_date
-})
+function cancel() {
+  emit('cancel')
+}
 
-const onSubmit = async () => {
+async function onSubmit() {
   loading.value = true
   error.value   = null
 
@@ -90,28 +138,3 @@ const onSubmit = async () => {
   }
 }
 </script>
-
-<style scoped>
-.edit-form-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex; align-items: center; justify-content: center;
-}
-.edit-form {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 4px;
-  max-width: 400px;
-  width: 100%;
-}
-.buttons {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-.error {
-  color: red;
-  margin-top: 0.5rem;
-}
-</style>

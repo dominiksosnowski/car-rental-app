@@ -1,140 +1,161 @@
 <!-- src/components/rental/EditRentalForm.vue -->
 <template>
-  <div class="overlay">
-    <form @submit.prevent="onSubmit" class="edit-rental-form">
-      <h3>Edytuj wypożyczenie</h3>
+  <v-card>
+    <v-card-title>
+      <span class="text-h6">Edytuj wypożyczenie</span>
+    </v-card-title>
+    <v-divider />
+    <v-card-text>
+      <v-form @submit.prevent="onSubmit" ref="form">
+        <v-row>
+          <v-col cols="12" md="6">
+            <v-text-field v-model="clientFirst" label="Imię" required />
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-text-field v-model="clientLast" label="Nazwisko" required />
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-text-field
+              v-model="clientPhone"
+              label="Telefon"
+              type="tel"
+              required
+            />
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-text-field
+              v-model="startDate"
+              label="Start"
+              type="date"
+              required
+            />
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-text-field
+              v-model="endDate"
+              label="Koniec"
+              type="date"
+              required
+            />
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-select
+              v-model="vehicleId"
+              :items="vehicles"
+              item-title="label"
+              item-value="id"
+              label="Pojazd"
+              required
+            />
+          </v-col>
+          <v-col cols="6" md="3">
+            <v-text-field
+              v-model.number="dailyRate"
+              label="Stawka (doba)"
+              type="number"
+              min="0"
+              step="0.01"
+              required
+            />
+          </v-col>
+          <v-col cols="6" md="3">
+            <v-text-field
+              v-model.number="monthlyRate"
+              label="Stawka (miesiąc)"
+              type="number"
+              min="0"
+              step="0.01"
+              required
+            />
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-checkbox v-model="deposit" label="Kaucja" />
+          </v-col>
 
-      <label>
-        Imię
-        <input v-model="clientFirst" type="text" required />
-      </label>
+          <!-- DODANE NOTATKI -->
+          <v-col cols="12">
+            <v-textarea
+              v-model="notes"
+              label="Notatki"
+              rows="3"
+              auto-grow
+            />
+          </v-col>
+        </v-row>
+      </v-form>
+    </v-card-text>
 
-      <label>
-        Nazwisko
-        <input v-model="clientLast" type="text" required />
-      </label>
+    <v-card-actions>
+      <v-spacer />
+      <v-btn text @click="$emit('cancel')">Anuluj</v-btn>
+      <v-btn color="primary" :loading="loading" @click="onSubmit">
+        Zapisz
+      </v-btn>
+    </v-card-actions>
 
-      <label>
-        Telefon
-        <input v-model="clientPhone" type="tel" required />
-      </label>
-
-      <label>
-        Start
-        <input v-model="startDate" type="date" required />
-      </label>
-
-      <label>
-        Koniec
-        <input v-model="endDate" type="date" required />
-      </label>
-
-      <label>
-        Pojazd
-        <select v-model="vehicleId" required>
-          <option
-            v-for="v in vehiclesList"
-            :key="v.id"
-            :value="v.id"
-          >
-            {{ v.brand }} {{ v.model }} ({{ v.reg_number }})
-          </option>
-        </select>
-      </label>
-
-      <label>
-        Stawka za dobę
-        <input
-          v-model.number="dailyRate"
-          type="number"
-          step="0.01"
-          min="0"
-          required
-        />
-      </label>
-
-      <label>
-        Stawka za miesiąc
-        <input
-          v-model.number="monthlyRate"
-          type="number"
-          step="0.01"
-          min="0"
-          required
-        />
-      </label>
-
-      <label class="checkbox">
-        <input v-model="deposit" type="checkbox" />
-        Kaucja (tak/nie)
-      </label>
-
-      <div class="buttons">
-        <button type="submit" :disabled="loading">
-          {{ loading ? 'Zapisywanie…' : 'Zapisz' }}
-        </button>
-        <button type="button" @click="onCancel">Anuluj</button>
-      </div>
-
-      <p v-if="error" class="error">{{ error }}</p>
-    </form>
-  </div>
+    <v-alert v-if="error" color="error" variant="outlined" class="m-4">
+      {{ error }}
+    </v-alert>
+  </v-card>
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
-import { storeToRefs }           from 'pinia'
-import { useVehicleStore }       from '@/stores/vehicleStore'
-import { useRentalStore }        from '@/stores/rentalStore'
+import { ref, watch, computed, onMounted } from 'vue'
+import { storeToRefs }                   from 'pinia'
+import { useVehicleStore }               from '@/stores/vehicleStore'
+import { useRentalStore }                from '@/stores/rentalStore'
 
 const props = defineProps({
   rental: { type: Object, required: true }
 })
 const emit = defineEmits(['updated', 'cancel'])
 
-// lokalne pola formularza
-const clientFirst  = ref(props.rental.client_first)
-const clientLast   = ref(props.rental.client_last)
-const clientPhone  = ref(props.rental.client_phone)
-const startDate    = ref(props.rental.start_date)
-const endDate      = ref(props.rental.end_date)
-const vehicleId    = ref(props.rental.vehicle_id)
-const dailyRate    = ref(props.rental.daily_rate)
-const monthlyRate  = ref(props.rental.monthly_rate)
-const deposit      = ref(props.rental.deposit)
+const clientFirst = ref('')
+const clientLast  = ref('')
+const clientPhone = ref('')
+const startDate   = ref('')
+const endDate     = ref('')
+const vehicleId   = ref(null)
+const dailyRate   = ref(0)
+const monthlyRate = ref(0)
+const deposit     = ref(false)
 
-// store'y
-const vehicleStore = useVehicleStore()
-const rentalStore  = useRentalStore()
+// nowy stan dla notatek
+const notes = ref('')
 
-// reactive refs
-const { loading, error }          = storeToRefs(rentalStore)
-const { list: vehiclesList }      = storeToRefs(vehicleStore)
-
-// ładujemy listę pojazdów
-onMounted(() => {
-  vehicleStore.fetchAll()
-})
-
-// gdy zmieni się props.rental, synchronizujemy pola
+// synchronizacja przy otwarciu edycji
 watch(
   () => props.rental,
   r => {
-    clientFirst.value  = r.client_first
-    clientLast.value   = r.client_last
-    clientPhone.value  = r.client_phone
-    startDate.value    = r.start_date
-    endDate.value      = r.end_date
-    vehicleId.value    = r.vehicle_id
-    dailyRate.value    = r.daily_rate
-    monthlyRate.value  = r.monthly_rate
-    deposit.value      = r.deposit
-  }
+    clientFirst.value = r.client_first
+    clientLast.value  = r.client_last
+    clientPhone.value = r.client_phone
+    startDate.value   = r.start_date
+    endDate.value     = r.end_date
+    vehicleId.value   = r.vehicle_id
+    dailyRate.value   = r.daily_rate
+    monthlyRate.value = r.monthly_rate
+    deposit.value     = r.deposit
+
+    // zaciągamy istniejące notatki
+    notes.value = r.notes || ''
+  },
+  { immediate: true }
 )
 
-function onCancel() {
-  emit('cancel')
-}
+const vehicleStore = useVehicleStore()
+const rentalStore  = useRentalStore()
+const { list: vehiclesRaw } = storeToRefs(vehicleStore)
+const { loading, error }    = storeToRefs(rentalStore)
+
+onMounted(() => vehicleStore.fetchActive())
+
+const vehicles = computed(() =>
+  vehiclesRaw.value.map(v => ({
+    id: v.id,
+    label: `${v.brand} ${v.model} (${v.reg_number})`
+  }))
+)
 
 async function onSubmit() {
   loading.value = true
@@ -150,6 +171,7 @@ async function onSubmit() {
     daily_rate:    dailyRate.value,
     monthly_rate:  monthlyRate.value,
     deposit:       deposit.value,
+    notes:         notes.value            // ← dorzucamy notatki
   }
 
   const updated = await rentalStore.updateRental(props.rental.id, payload)
@@ -160,52 +182,3 @@ async function onSubmit() {
   }
 }
 </script>
-
-<style scoped>
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.edit-rental-form {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 4px;
-  width: 100%;
-  max-width: 500px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-label {
-  display: flex;
-  flex-direction: column;
-}
-
-label.checkbox {
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.buttons {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-button {
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-}
-
-.error {
-  color: red;
-  margin-top: 0.5rem;
-}
-</style>
