@@ -44,7 +44,7 @@
                       v-model="customStart"
                       label="Od"
                       readonly
-                      append-icon="mdi-calendar"
+                      prepend-inner-icon="mdi-calendar"
                       class="ma-0 pa-0"
                     />
                   </template>
@@ -70,7 +70,7 @@
                       v-model="customEnd"
                       label="Do"
                       readonly
-                      append-icon="mdi-calendar"
+                      prepend-inner-icon="mdi-calendar"
                       class="ma-0 pa-0"
                     />
                   </template>

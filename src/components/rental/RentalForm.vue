@@ -51,7 +51,7 @@
           v-model="endDate"
           label="Koniec"
           type="date"
-          required
+          
         />
       </v-col>
 
@@ -178,7 +178,7 @@ async function onSubmit() {
     client_phone:  clientPhone.value,
     vehicle_id:    vehicleId.value,
     start_date:    startDate.value,
-    end_date:      endDate.value,
+    end_date:      endDate.value || null,
     daily_rate:    dailyRate.value,
     monthly_rate:  monthlyRate.value,
     deposit:       deposit.value,

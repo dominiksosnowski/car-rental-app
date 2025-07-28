@@ -54,7 +54,7 @@
       <template #item.vehicle="{ item }">
         {{ item.vehicles?.brand || '–' }}
         {{ item.vehicles?.model || '' }}
-        ({{ item.vehicles?.reg_number || '–' }})
+        {{ item.vehicles?.reg_number || '–' }}
       </template>
       <template #item.period="{ item }">
         {{ formatDate(item.start_date) }} – {{ formatDate(item.end_date) }}
@@ -62,11 +62,7 @@
       <template #item.notes="{ item }">
         {{ item.notes || '–' }}
       </template>
-      <template #item.edit="{ item }">
-        <v-btn icon small @click="startEdit(item)">
-          <v-icon>mdi-pencil</v-icon>
-        </v-btn>
-      </template>
+
       <template #item.delete="{ item }">
         <v-btn icon small color="error" @click="remove(item.id)">
           <v-icon>mdi-delete</v-icon>
@@ -123,7 +119,6 @@ const headers = [
   { title: 'Pojazd',   key: 'vehicle',  sortable: false },
   { title: 'Okres',    key: 'period',   sortable: false },
   { title: 'Notatki',  key: 'notes',    sortable: false },
-  { title: 'Edytuj',   key: 'edit',     sortable: false, align: 'center' },
   { title: 'Usuń',     key: 'delete',   sortable: false, align: 'center' },
 ]
 

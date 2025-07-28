@@ -60,7 +60,7 @@
       <template #item.vehicle="{ item }">
         {{ item.vehicles?.brand || '–' }}
         {{ item.vehicles?.model || '' }}
-        ({{ item.vehicles?.reg_number || '–' }})
+        {{ item.vehicles?.reg_number || '–' }}
       </template>
 
       <!-- 6. Zapłacono -->

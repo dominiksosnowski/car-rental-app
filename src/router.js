@@ -16,8 +16,8 @@ import ArchivedVehicles from '@/views/rental/ArchivedVehicles.vue'
 import Workshop from '@/views/Workshop.vue'
 import WorkshopDashboard from '@/views/workshop/WorkshopDashboard.vue'
 import WorkshopScheduled   from '@/views/workshop/WorkshopScheduled.vue'
-import WorkshopInProgress  from '@/views/workshop/WorkshopInProgress.vue'
-import WorkshopCompleted   from '@/views/workshop/WorkshopCompleted.vue'
+import ActiveRepairs  from '@/views/workshop/ActiveRepairs.vue'
+import CompletedRepairs   from '@/views/workshop/CompletedRepairs.vue'
 import WorkshopPayments    from '@/views/workshop/WorkshopPayments.vue'
 
 const routes = [
@@ -82,13 +82,13 @@ const routes = [
       },
       {
         path: 'in-progress',
-        name: 'WorkshopInProgress',
-        component: WorkshopInProgress
+        name: 'ActiveRepairs',
+        component: ActiveRepairs
       },
       {
         path: 'completed',
-        name: 'WorkshopCompleted',
-        component: WorkshopCompleted
+        name: 'CompletedRepairs',
+        component: CompletedRepairs
       },
       {
         path: 'payments',

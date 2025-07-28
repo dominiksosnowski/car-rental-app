@@ -5,10 +5,10 @@
       <v-spacer/>
       <v-btn text to="/Dashboard">Strona główna</v-btn>
       <v-btn text to="/workshop/WorkshopDashboard">Podsumowanie</v-btn>
-      <v-btn text to="/workshop/completed">Zakończone naprawy</v-btn>
       <v-btn text to="/workshop/in-progress">Aktualne naprawy</v-btn>
       <v-btn text to="/workshop/payments">Płatności</v-btn>
       <v-btn text to="/workshop/scheduled">Umówione pojazdy</v-btn>
+      <v-btn text to="/workshop/completed">Zakończone naprawy</v-btn>
     </v-app-bar>
 
     <v-main>
