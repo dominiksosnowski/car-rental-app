@@ -1,8 +1,7 @@
 // notifications.js
-import admin from "firebase-admin";
 import { createClient } from "@supabase/supabase-js";
-import dotenv from "dotenv";
-dotenv.config();
+import admin from "./firebase-admin.js";
+
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
