@@ -44,7 +44,7 @@ export async function registerFcm() {
     }
 
     // 5) Wysłanie tokenu do backendu (z email)
-    await fetch(`${import.meta.env.VITE_BACKEND_URL}/register-token`, {
+    await fetch("/.netlify/functions/register-token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, token })
