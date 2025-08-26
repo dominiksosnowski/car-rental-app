@@ -16,9 +16,6 @@ import 'vuetify/styles'
 import '@mdi/font/css/materialdesignicons.css'
 import { pl } from 'vuetify/locale'
 
-import './firebase' // samo załadowanie inicjalizuje Firebase
-import { registerFcm } from '@/notifications/registerFcm' // 📲 rejestracja FCM
-
 // 📅 Kalendarz
 import VCalendar from 'v-calendar'
 import 'v-calendar/style.css'
@@ -67,7 +64,4 @@ app.use(VCalendar, {}) // 📅 Globalna rejestracja komponentu kalendarza
 // 🚀 Start
 app.mount('#app')
 
-// 📲 Rejestracja FCM po starcie aplikacji
-if ('serviceWorker' in navigator) {
-  registerFcm().catch(err => console.error('Błąd rejestracji FCM:', err))
-}
+

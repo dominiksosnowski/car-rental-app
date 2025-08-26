@@ -57,17 +57,6 @@ const authStore = useAuthStore()
 // }
 
 async function goTo(name: string) {
-  try {
-    // Wyślij powiadomienie do adminów
-      await fetch("/.netlify/functions/send-to-admins", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" }
-      });
-    console.log("Wysłano powiadomienie")
-  } catch (err) {
-    console.error("Błąd wysyłki powiadomienia:", err);
-  }
-
   // Przejdź do wybranej trasy
   router.push({ name });
 }

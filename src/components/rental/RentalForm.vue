@@ -206,22 +206,5 @@ async function onSubmit() {
     formRef.value.resetValidation()
     emit('saved', saved)
   }
-  if (saved) {
-  // znajdź label pojazdu
-  const vehicleLabel = vehicles.value.find(v => v.id === vehicleId.value)?.label || "";
-
-  await fetch("/.netlify/functions/send-rental-notification", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      client_first: clientFirst.value,
-      client_last: clientLast.value,
-      vehicle_label: vehicleLabel,
-      start_date: startDate.value,
-      end_date: endDate.value
-    })
-  });
-}
-
 }
 </script>

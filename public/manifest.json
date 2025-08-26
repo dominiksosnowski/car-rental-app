@@ -1,6 +1,6 @@
 {
-  "name": "Sosnowski WebApp",
-  "short_name": "Sosnowski",
+  "name": "Organizer WebApp",
+  "short_name": "Organizer",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#ffffff",
