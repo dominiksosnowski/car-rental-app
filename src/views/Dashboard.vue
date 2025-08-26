@@ -59,10 +59,10 @@ const authStore = useAuthStore()
 async function goTo(name: string) {
   try {
     // Wyślij powiadomienie do adminów
-    await fetch("http://localhost:3000/send-to-admins", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" }
-    });
+      await fetch("/.netlify/functions/send-to-admins", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
     console.log("Wysłano powiadomienie")
   } catch (err) {
     console.error("Błąd wysyłki powiadomienia:", err);
@@ -93,6 +93,8 @@ const visibleCards = computed(() => {
   const allowedTitles = emailAccessMap[email] || []
   return cards.filter(c => allowedTitles.includes(c.title))
 })
+
+
 </script>
 
 <style scoped>

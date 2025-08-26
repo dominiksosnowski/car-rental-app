@@ -1,5 +1,5 @@
 // netlify/functions/send-to-managers.js
-import { sendNotificationByRole } from "./notifications.js";
+import { sendNotificationByRole } from "./lib/notifications.js";
 
 export async function handler(event) {
   if (event.httpMethod !== "POST") {
