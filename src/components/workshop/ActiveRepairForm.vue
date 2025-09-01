@@ -85,17 +85,20 @@
       </v-col>
     </v-row>
 
-    <!-- 3. Kwota i sposób płatności -->
-    <v-row>
-      <v-col cols="12">
-        <v-text-field
-          :value="formattedDue"
-          label="Kwota do zapłaty"
-          readonly
-        />
-      </v-col>
-    </v-row>
-
+<v-row>
+  <v-col cols="12" md="6">
+    <v-text-field
+      v-model="engine"
+      label="Silnik"
+    />
+  </v-col>
+  <v-col cols="12" md="6">
+    <v-text-field
+      v-model="customerOrder"
+      label="Zlecenie klienta"
+    />
+  </v-col>
+</v-row>
     <v-row>
       <v-col cols="12" md="6">
         <v-select
@@ -164,6 +167,9 @@ const phone          = ref('')
 const vehicleMake    = ref('')
 const vehicleModel   = ref('')
 const vin            = ref('')
+const engine        = ref('')
+const customerOrder = ref('')
+
 
 const paymentMethod = ref(null)
 const paymentItems = [
@@ -187,6 +193,8 @@ watch(
     vehicleMake.value    = r?.vehicle_make                 || ''
     vehicleModel.value   = r?.vehicle_model                || ''
     vin.value            = r?.vin                          || ''
+    engine.value         = r?.engine                       || ''
+    customerOrder.value  = r?.customer_order               || ''
     paymentMethod.value  = r?.payment_method               || null
 
     formRef.value?.resetValidation()
@@ -194,6 +202,7 @@ watch(
   },
   { immediate: true }
 )
+
 
 const formattedDue = computed(() => {
   const amount = props.repair?.due_amount || 0
@@ -214,21 +223,24 @@ async function submit() {
   localLoading.value = true
   localError.value   = null
 
-  const payload = {
-    arrival_date:    arrivalDate.value
-      ? new Date(arrivalDate.value).toISOString()
-      : null,
-    completion_date: completionDate.value
-      ? new Date(completionDate.value).toISOString()
-      : null,
-    first_name:      firstName.value,
-    last_name:       lastName.value,
-    phone:           phone.value,
-    vehicle_make:    vehicleMake.value || null,
-    vehicle_model:   vehicleModel.value || null,
-    vin:             vin.value || null,
-    payment_method:  paymentMethod.value
-  }
+const payload = {
+  arrival_date:    arrivalDate.value
+    ? new Date(arrivalDate.value).toISOString()
+    : null,
+  completion_date: completionDate.value
+    ? new Date(completionDate.value).toISOString()
+    : null,
+  first_name:      firstName.value,
+  last_name:       lastName.value,
+  phone:           phone.value,
+  vehicle_make:    vehicleMake.value || null,
+  vehicle_model:   vehicleModel.value || null,
+  vin:             vin.value || null,
+  engine:          engine.value || null,
+  customer_order:  customerOrder.value || null,
+  payment_method:  paymentMethod.value
+}
+
 
   try {
     let res

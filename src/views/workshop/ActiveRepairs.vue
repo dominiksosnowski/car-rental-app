@@ -51,6 +51,15 @@
               <strong>VIN:</strong> {{ item.vin || '–' }}
             </div>
             <div>
+            <v-icon start color="purple">mdi-engine</v-icon>
+            <strong>Silnik:</strong> {{ item.engine || '–' }}
+            </div>
+            <div>
+              <v-icon start color="brown">mdi-clipboard-text</v-icon>
+              <strong>Zlecenie klienta:</strong> {{ item.customer_order || '–' }}
+            </div>
+
+            <div>
               <v-icon start color="orange">mdi-currency-usd</v-icon>
               <strong>Kwota:</strong> {{ formatCurrency(sumParts(item)) }}
             </div>
@@ -77,7 +86,122 @@
     </v-row>
 
     <!-- DESKTOP: tabela z expand -->
-    <v-data-table
+<v-row v-else >
+  <v-col
+    v-for="item in activeRepairs"
+    :key="item.id"
+    cols="12"
+    sm="6"
+    md="4"
+  >
+    <v-card outlined>
+      <!-- Nagłówek karty -->
+<v-card-title class="d-flex flex-column">
+  <span class="text-h6 font-weight-bold">
+    <v-icon start color="indigo">mdi-car-wrench</v-icon>
+    {{ item.vehicle_make }} {{ item.vehicle_model }}
+  </span>
+  <span class="text-body-2 mt-2">
+    <v-icon start color="teal">mdi-account</v-icon>
+    {{ item.first_name }} {{ item.last_name }}
+  </span>
+  <span class="text-body-2 mt-1 font-weight-medium">
+    <v-icon start color="orange">mdi-currency-usd</v-icon>
+    Do zapłaty: <strong>{{ formatCurrency(sumParts(item)) }}</strong>
+  </span>
+</v-card-title>
+
+
+      <v-divider />
+
+      <!-- Rozwijana sekcja ze szczegółami -->
+      <v-expansion-panels multiple>
+        <v-expansion-panel>
+          <v-expansion-panel-title>
+            <v-icon start>mdi-information</v-icon> Szczegóły
+          </v-expansion-panel-title>
+          <v-expansion-panel-text class="text-body-2">
+            <v-row>
+              <v-col cols="6">
+                <v-icon start color="blue">mdi-calendar-arrow-right</v-icon>
+                <strong>Przyjęcie:</strong> {{ formatDate(item.arrival_date) }}
+              </v-col>
+              <v-col cols="6">
+                <v-icon start color="blue">mdi-calendar-check</v-icon>
+                <strong>Zakończenie:</strong> {{ formatDate(item.completion_date) }}
+              </v-col>
+              <v-col cols="6">
+                <v-icon start color="green">mdi-phone</v-icon>
+                <strong>Telefon:</strong>
+                <a v-if="item.phone" :href="`tel:${item.phone.replace(/\s+/g, '')}`">{{ item.phone }}</a>
+                <span v-else>–</span>
+              </v-col>
+              <v-col cols="6">
+                <v-icon start color="grey">mdi-card-account-details</v-icon>
+                <strong>VIN:</strong> {{ item.vin || '–' }}
+              </v-col>
+              <v-col cols="6">
+                <v-icon start color="purple">mdi-engine</v-icon>
+                <strong>Silnik:</strong> {{ item.engine || '–' }}
+              </v-col>
+              <v-col cols="6">
+                <v-icon start color="brown">mdi-clipboard-text</v-icon>
+                <strong>Zlecenie klienta:</strong> {{ item.customer_order || '–' }}
+              </v-col>
+            </v-row>
+<v-card-actions>
+  <v-row dense class="w-100">
+    <v-col cols="4">
+      <v-btn variant="outlined" block size="small" color="secondary" prepend-icon="mdi-tools" @click="openPartsDialog(item.id)">
+        Części
+      </v-btn>
+    </v-col>
+    <v-col cols="4">
+      <v-btn variant="outlined" block size="small" prepend-icon="mdi-pencil" @click="openEdit(item)">
+        Edytuj
+      </v-btn>
+    </v-col>
+    <v-col cols="4">
+      <v-btn variant="outlined" block size="small" color="primary" prepend-icon="mdi-check" :disabled="item.completed || loadingActive" @click="finishRepair(item)">
+        Zakończ
+      </v-btn>
+    </v-col>
+  </v-row>
+</v-card-actions>
+
+
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+
+        <!-- Panel z częściami -->
+
+      </v-expansion-panels>
+    </v-card>
+  </v-col>
+  <v-dialog v-model="partsDialog" max-width="800px">
+  <v-card>
+    <v-toolbar flat color="primary" dark>
+      <v-toolbar-title>Lista części</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-btn icon @click="partsDialog = false">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-toolbar>
+    <v-card-text>
+      <RepairPartsList
+        v-if="selectedRepairId"
+        :repairId="selectedRepairId"
+        @added="fetchActive"
+      />
+    </v-card-text>
+  </v-card>
+</v-dialog>
+
+</v-row>
+
+
+
+    <!-- <v-data-table
       v-else
       :headers="headers"
       :items="activeRepairs"
@@ -114,7 +238,7 @@
       <template #no-data>
         <v-alert color="info" variant="outlined">— Brak aktywnych (niezakończonych) napraw —</v-alert>
       </template>
-    </v-data-table>
+    </v-data-table> -->
 
     <!-- Dialog dodawania/edycji naprawy -->
     <v-dialog v-model="dialog" max-width="600px">
@@ -203,11 +327,14 @@ const headers = [
   { title: 'Klient',           key: 'client' },
   { title: 'Telefon',          key: 'phone' },
   { title: 'Marka i model',    key: 'vehicle' },
+  { title: 'Silnik',           key: 'engine' },
+  { title: 'Zlecenie klienta', key: 'customer_order' },
   { title: 'VIN',              key: 'vin' },
-  { title: 'Kwota do zapłaty', key: 'total',    sortable: false },
-  { title: 'Edytuj',            key: 'actions',  sortable: false },
-  { title: 'Zakończ',          key: 'finish',   sortable: false },
+  { title: 'Kwota do zapłaty', key: 'total', sortable: false },
+  { title: 'Edytuj',           key: 'actions', sortable: false },
+  { title: 'Zakończ',          key: 'finish', sortable: false },
 ]
+
 
 async function fetchActive() {
   await store.fetchActiveRepairs()
@@ -236,6 +363,14 @@ function formatCurrency(val) {
 }
 
 onMounted(fetchActive)
+const partsDialog = ref(false)
+const selectedRepairId = ref(null)
+
+function openPartsDialog(repairId) {
+  selectedRepairId.value = repairId
+  partsDialog.value = true
+}
+
 </script>
 
 <style scoped>

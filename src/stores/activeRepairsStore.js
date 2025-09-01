@@ -42,6 +42,8 @@ export const useActiveRepairsStore = defineStore('activeRepairs', {
           vehicle_make,
           vehicle_model,
           vin,
+          engine,
+         customer_order,
           completed,
           payment_method,
           workshop_repair_parts (
