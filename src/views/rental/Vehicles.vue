@@ -128,6 +128,7 @@ import EditVehicleForm               from '@/components/rental/EditVehicleForm.v
 import { useVehicleStore }           from '@/stores/vehicleStore'
 import { useRentalStore }            from '@/stores/rentalStore'
 import { usePaymentStore }           from '@/stores/paymentStore'
+import { supabase }    from '@/lib/supabase'
 
 const vehicleStore = useVehicleStore()
 const rentalStore  = useRentalStore()
@@ -142,13 +143,25 @@ const { list: payments }                 = storeToRefs(paymentStore)
 const showAddForm    = ref(false)
 const showEditForm   = ref(false)
 const editingVehicle = ref(null)
+const archivedRentals = ref([])
 
 // init danych
 onMounted(async () => {
   await fetchActive()
-  await rentalStore.fetchAll()
+  await rentalStore.fetchAll() // aktywne do rentals.value
+
+  // pobierz archiwalne do osobnego ref
+  const { data: archived } = await supabase
+    .from('rentals')
+    .select(`*, vehicles:vehicle_id(brand, model, reg_number)`)
+    .eq('archived', true)
+    .order('start_date', { ascending: false })
+
+  archivedRentals.value = archived || []
+
   await paymentStore.fetchAll()
 })
+
 
 // fetch only active (niearchiwalne)
 function fetchActive() {
@@ -198,14 +211,18 @@ function formatCurrency(val) {
 
 // obliczamy sumę wpłat dla każdego pojazdu
 const earningsByVehicle = computed(() => {
-  return rentals.value.reduce((acc, r) => {
+  const allRentals = [...rentals.value, ...archivedRentals.value]
+
+  return allRentals.reduce((acc, r) => {
     const sumForThisRent = payments.value
       .filter(p => p.rental_id === r.id)
       .reduce((s, p) => s + Number(p.amount), 0)
+
     acc[r.vehicle_id] = (acc[r.vehicle_id] || 0) + sumForThisRent
     return acc
   }, {})
 })
+
 
 // nagłówki tabeli (dodaliśmy kolumnę earnings)
 const headers = [
