@@ -331,6 +331,7 @@ async function handleSubmitted() {
 }
 
 onMounted(() => {
+  selectedMonth.value = month.value
   handleSubmitted()
 })
 function filteredInvoicesBySupplier(supplier: string) {
