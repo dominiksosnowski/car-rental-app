@@ -48,6 +48,90 @@
     </v-card-text>
   </v-card>
 </v-col>
+<v-row class="mb-6" dense>
+  <!-- Przyjęte naprawy -->
+  <v-col cols="12" md="6">
+    <v-card outlined>
+      <v-card-title class="bg-blue-lighten-5">
+        <v-icon color="blue" class="mr-2">mdi-car-arrow-right</v-icon>
+        Przyjęte naprawy
+      </v-card-title>
+      <v-card-text>
+        <v-list density="compact">
+          <v-list-item
+            v-for="(r, index) in acceptedToday"
+            :key="r.id"
+          >
+            <v-list-item-content>
+              <div class="d-flex align-center mb-1">
+                <v-icon color="primary" class="mr-2">mdi-account</v-icon>
+                <strong>{{ r.first_name }} {{ r.last_name }}</strong>
+              </div>
+              <div class="d-flex align-center mb-1">
+                <v-icon color="teal" class="mr-2">mdi-car</v-icon>
+                {{ r.vehicle_make }} {{ r.vehicle_model }} 
+              </div>
+              <div class="d-flex align-center">
+                <v-icon color="orange" class="mr-2">mdi-clipboard-text</v-icon>
+                Zlecenie: {{ r.customer_order }}
+              </div>
+            </v-list-item-content>
+            <v-divider
+              v-if="index !== acceptedToday.length - 1"
+              class="my-3"
+            />
+          </v-list-item>
+          <v-list-item v-if="!acceptedToday.length" title="Brak" />
+        </v-list>
+      </v-card-text>
+    </v-card>
+  </v-col>
+
+  <!-- Zakończone naprawy -->
+  <v-col cols="12" md="6">
+    <v-card outlined>
+      <v-card-title class="bg-green-lighten-5">
+        <v-icon color="green" class="mr-2">mdi-wrench-check</v-icon>
+        Zakończone naprawy
+      </v-card-title>
+      <v-card-text>
+        <v-list density="compact">
+          <v-list-item
+            v-for="(r, index) in completedToday"
+            :key="r.id"
+          >
+            <v-list-item-content>
+              <div class="d-flex align-center mb-1">
+                <v-icon color="primary" class="mr-2">mdi-account</v-icon>
+                <strong>{{ r.first_name }} {{ r.last_name }}</strong>
+              </div>
+              <div class="d-flex align-center mb-1">
+                <v-icon color="teal" class="mr-2">mdi-car</v-icon>
+                {{ r.vehicle_make }} {{ r.vehicle_model }} 
+              </div>
+              <div class="d-flex align-center">
+                <v-icon color="green" class="mr-2">mdi-cash-multiple</v-icon>
+                Zapłacono: <strong class="ml-1">{{ formatCurrency(r.due_amount) }}</strong>
+              </div>
+              <div class="d-flex align-center">
+                <v-icon color="purple" class="mr-2">mdi-credit-card-outline</v-icon>
+                Forma płatności: <strong class="ml-1">{{ r.payment_method }}</strong>
+              </div>
+            </v-list-item-content>
+            <v-divider
+              v-if="index !== completedToday.length - 1"
+              class="my-3"
+            />
+          </v-list-item>
+          <v-list-item v-if="!completedToday.length" title="Brak" />
+        </v-list>
+      </v-card-text>
+    </v-card>
+  </v-col>
+</v-row>
+
+
+
     <v-row dense>
       <!-- Pojazdy w trakcie naprawy -->
       <v-col cols="12" md="6">
@@ -313,13 +397,14 @@ function nextMonth() { shiftMonth(1) }
 // 📥 Pobieranie PRZYCHODÓW z Supabase
 async function fetchEarnings(year, m) {
   const monthStr = String(m).padStart(2, '0')
+  const lastDay = getLastDayOfMonth(year, m)
 
   const { data, error } = await supabase
     .from('workshop_active_repairs')
     .select('due_amount, completed, completion_date')
     .eq('completed', true)
     .gte('completion_date', `${year}-${monthStr}-01`)
-    .lte('completion_date', `${year}-${monthStr}-31`)
+    .lte('completion_date', `${year}-${monthStr}-${lastDay}`)
 
   if (error) {
     console.error('Błąd pobierania przychodów:', error)
@@ -329,22 +414,30 @@ async function fetchEarnings(year, m) {
   return data.reduce((sum, row) => sum + Number(row.due_amount || 0), 0)
 }
 
-
-
-// 📥 Pobieranie KOSZTÓW (faktury) z Supabase
 async function fetchCosts(year, m) {
+  const monthStr = String(m).padStart(2, '0')
+  const lastDay = getLastDayOfMonth(year, m)
+
   const { data, error } = await supabase
-    .from('workshop_invoices')     // ← ta tabela już u Ciebie działa
+    .from('workshop_invoices')
     .select('amount, invoice_date')
-    .gte('invoice_date', `${year}-${String(m).padStart(2, '0')}-01`)
-    .lte('invoice_date', `${year}-${String(m).padStart(2, '0')}-31`)
+    .gte('invoice_date', `${year}-${monthStr}-01`)
+    .lte('invoice_date', `${year}-${monthStr}-${lastDay}`)
 
   if (error) {
     console.error(error)
     return 0
   }
+
   return data.reduce((sum, row) => sum + Number(row.amount || 0), 0)
 }
+
+
+function getLastDayOfMonth(year, month) {
+  // month: 1–12
+  return new Date(year, month, 0).getDate() // 0 = ostatni dzień poprzedniego miesiąca
+}
+
 
 // 🔄 Łączne pobranie danych miesiąca
 async function fetchMonthData() {
@@ -365,6 +458,49 @@ async function fetchMonthData() {
 onMounted(() => {
   fetchMonthData()
 })
+
+const day = ref(new Date().toISOString().slice(0, 10)) // YYYY-MM-DD
+
+// Formatowanie daty do wyświetlenia
+const dayLabel = computed(() => {
+  const [y, m, d] = day.value.split('-').map(Number)
+  return new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' })
+    .format(new Date(y, m - 1, d))
+})
+
+// Zmiana dnia
+function shiftDay(delta) {
+  const d = new Date(day.value)
+  d.setDate(d.getDate() + delta)
+  day.value = d.toISOString().slice(0, 10)
+}
+function prevDay() { shiftDay(-1) }
+function nextDay() { shiftDay(1) }
+
+// Zakładam, że masz reactive array z danymi z Supabase
+// np. repairs = ref([]) wypełniane w onMounted()
+
+const acceptedToday = computed(() => {
+  return workshop_active_repairs.value.filter(r => {
+    if (!r.arrival_date) return false
+    return new Date(r.arrival_date).toISOString().slice(0, 10) === day.value
+  })
+})
+
+
+
+const completedToday = computed(() => {
+  return workshop_active_repairs.value.filter(r => {
+    if (!r.completion_date || !r.completed) return false
+    return new Date(r.completion_date).toISOString().slice(0, 10) === day.value
+  })
+})
+
+
+
+
+
+
 </script>
 
 <style scoped>
