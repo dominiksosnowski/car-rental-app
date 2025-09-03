@@ -1,6 +1,22 @@
 <template>
   <v-container fluid class="pa-4">
     <!-- Nagłówek i akcje -->
+      <v-row class="mb-4">
+        <v-col cols="12">
+          <v-card class="pa-4" elevation="2" style="border-left: 4px solid #2196F3; background-color: #E3F2FD;">
+            <div class="d-flex align-center mb-2">
+              <v-icon class="me-2" color="blue">mdi-car</v-icon>
+              Pojazdów w naprawie: <strong>{{ activeRepairs.length }}</strong>
+            </div>
+            <div class="d-flex align-center">
+              <v-icon class="me-2" color="orange">mdi-currency-usd</v-icon>
+              Łączna kwota do zapłaty: <strong>{{ formatCurrency(totalAmount) }}</strong>
+            </div>
+          </v-card>
+        </v-col>
+      </v-row>
+
+
     <v-row align="center" justify="space-between" class="mb-4">
       <v-col cols="12" md="4">
         <v-text-field
@@ -370,6 +386,12 @@ function openPartsDialog(repairId) {
   selectedRepairId.value = repairId
   partsDialog.value = true
 }
+
+const totalAmount = computed(() => {
+  return activeRepairs.value.reduce((sum, repair) => {
+    return sum + sumParts(repair)
+  }, 0)
+})
 
 </script>
 
