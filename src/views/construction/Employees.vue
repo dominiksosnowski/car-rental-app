@@ -81,12 +81,7 @@
                     {{ formatDate(item.medical_exam_date) }}
                   </span>
                 </div>
-                <div>
-                  <strong>Badania BHP:</strong>
-                  <span :style="getDateStyle(item.bhp_exam_date)">
-                    {{ formatDate(item.bhp_exam_date) }}
-                  </span>
-                </div>
+
                 <div>
                   <strong>Koniec umowy:</strong>
                   <span :style="getDateStyle(item.contract_end_date)">
@@ -183,12 +178,7 @@
     </span>
   </template>
 
-  <!-- Data badań BHP -->
-  <template #item.bhp_exam_date="{ value }">
-    <span :style="getDateStyle(value)">
-      {{ formatDate(value) }}
-    </span>
-  </template>
+
 
   <!-- Data końca umowy -->
   <template #item.contract_end_date="{ value }">
@@ -198,10 +188,11 @@
   </template>
 
 <template #item.medical_doc="{ item }">
-  <div v-if="item.medicalDoc" class="d-flex flex-column ga-2">
+  <div v-if="item.medicalDoc" class="d-flex flex-column ga-1">
     <v-btn
       color="green"
       size="small"
+      block
       @click="downloadDocument(item.medicalDoc.file_path)"
     >
       <v-icon start>mdi-download</v-icon>
@@ -211,6 +202,7 @@
     <v-btn
       color="red"
       size="small"
+      block
       @click="deleteDocument(item.medicalDoc.id, item.medicalDoc.file_path, item.id, 'medical')"
     >
       <v-icon start>mdi-delete</v-icon>
@@ -218,7 +210,7 @@
     </v-btn>
   </div>
 
-  <div v-else class="d-flex flex-column ga-2">
+  <div v-else class="d-flex flex-column">
     <v-btn
       color="primary"
       @click="$refs[`fileInput-medical-${item.id}`].click()"
@@ -248,6 +240,7 @@
     <v-btn
     size="small"
       color="green"
+      block
       @click="downloadDocument(item.bhpDoc.file_path)"
     >
       <v-icon start>mdi-download</v-icon>
@@ -257,6 +250,7 @@
     <v-btn
       color="red"
       size="small"
+      block
       @click="deleteDocument(item.bhpDoc.id, item.bhpDoc.file_path, item.id, 'bhp')"
     >
       <v-icon start>mdi-delete</v-icon>
@@ -351,12 +345,6 @@
           />
 
           <v-text-field
-            v-model="form.bhp_exam_date"
-            label="Data badań BHP"
-            type="date"
-          />
-
-          <v-text-field
             v-model="form.contract_end_date"
             label="Data końca umowy"
             type="date"
@@ -407,9 +395,8 @@ const headers = [
   { title: 'Telefon', key: 'phone' },
   { title: 'Firma', key: 'company_name' },
   { title: 'Data badań lekarskich', key: 'medical_exam_date' },
-  { title: 'Data badań BHP', key: 'bhp_exam_date' },
   { title: 'Koniec umowy', key: 'contract_end_date' },
-  { title: 'Dok. badań lekarskich', key: 'medical_doc', sortable: false },
+  { title: 'Dok. badań', key: 'medical_doc', sortable: false },
   { title: 'Dok. BHP', key: 'bhp_doc', sortable: false },
   { title: 'Status', key: 'status' },
   { title: 'Edytuj', key: 'edit', sortable: false },
