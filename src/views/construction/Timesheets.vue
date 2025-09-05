@@ -34,6 +34,9 @@
         Dodaj wpis
       </v-btn>
     </v-card-title>
+<v-btn @click="toggleExpandAll" color="primary" variant="outlined">
+  {{ expandAll ? 'Zwiń wszystkie' : 'Rozwiń wszystkie' }}
+</v-btn>
 
 <v-row>
   <v-col
@@ -80,31 +83,32 @@
       <!-- Szczegóły -->
 <v-expand-transition>
   <v-card-text v-if="isExpanded(group.employee_id)" class="pa-0" style="background:#fafafa">
-    <div
-      v-for="(entry, idx) in group.entries"
-      :key="entry.id"
-      class="pa-3"
-    >
-      <div class="mb-1 d-flex align-center">
-        <v-icon small color="deep-purple" class="mr-1">mdi-calendar</v-icon>
-        <span><strong>Data wpisu: </strong>{{ formatDate(entry.work_date) }}</span>
-        
-      </div>
-      <div class="mb-1 d-flex align-center">
-        <v-icon small color="teal" class="mr-1">mdi-briefcase</v-icon>
-       <span><strong>Miejsce: </strong> {{ projectNameMap[entry.project_id] ?? '—' }}</span>
-      </div>
-      <div class="mb-1 d-flex align-center">
-        <v-icon small color="orange" class="mr-1">mdi-clock</v-icon>
-        <span><strong>Godzin: </strong> {{ Number(entry.hours).toFixed(2) }} </span>  
-      </div>
-      <div class="d-flex align-center">
-        <v-icon small color="blue-grey" class="mr-1">mdi-currency-usd</v-icon>
-        <span v-if="projectEmployeeRateMap[entry.project_id] != null">
-         <strong>Stawka: </strong>  {{ formatCurrency(projectEmployeeRateMap[entry.project_id], projectCurrencyMap[entry.project_id] || 'PLN') }}
-        </span>
-      </div>
-        <div class="d-flex justify-end mt-2">
+<div
+  v-for="projectGroup in groupEntriesByProject(group.entries)"
+  :key="projectGroup.project_id"
+  class="pa-3"
+>
+  <!-- Nagłówek miejsca -->
+  <div class="mb-2 d-flex align-center text-h6">
+    <v-icon small color="teal" class="mr-1">mdi-briefcase</v-icon>
+    <strong>{{ projectGroup.project_name }}</strong>
+  </div>
+
+  <!-- Lista dat i godzin dla tego miejsca -->
+  <div
+    v-for="(entry, idx) in projectGroup.entries"
+    :key="entry.id"
+    class=" mb-1 "
+  >
+    <div class="d-flex align-center">
+      <v-icon small color="deep-purple" class="mr-1">mdi-calendar</v-icon>
+      Data: <strong>{{ formatDate(entry.work_date) }}</strong>
+    </div>
+    <div class="d-flex align-center">
+      <v-icon small color="orange" class="mr-1">mdi-clock</v-icon>
+      Godziny: <strong>{{ Number(entry.hours).toFixed(2) }} h</strong>
+    </div>
+            <div class="d-flex justify-end mt-2">
           <v-btn
             color="error"
             variant="tonal"
@@ -115,9 +119,12 @@
             Usuń wpis
           </v-btn>
         </div>
-      <!-- Separator -->
-      <v-divider v-if="idx < group.entries.length - 1" class="my-3"></v-divider>
-    </div>
+    <v-divider v-if="idx < projectGroup.entries.length - 1" class="my-2"  :thickness="1" color="black"/>
+  </div>
+
+  <v-divider class="my-2"  :thickness="1" color="black"/>
+</div>
+
   </v-card-text>
 </v-expand-transition>
 
@@ -372,13 +379,46 @@ const groupedByEmployee = computed(() => {
   return Array.from(groups, ([employee_id, entries]) => ({ employee_id, entries }))
 })
 
-const expandedId = ref(null)
+function groupEntriesByProject(entries) {
+  const map = new Map()
+  for (const e of entries) {
+    if (!map.has(e.project_id)) {
+      map.set(e.project_id, [])
+    }
+    map.get(e.project_id).push(e)
+  }
+  return Array.from(map, ([project_id, list]) => ({
+    project_id,
+    project_name: projectNameMap.value[project_id] ?? '—',
+    entries: list
+  }))
+}
+
+
+const expandedIds = ref([])
+const expandAll = ref(false)
+
 function isExpanded(id) {
-  return expandedId.value === id
+  return expandAll.value || expandedIds.value.includes(id)
 }
+
 function toggleExpand(id) {
-  expandedId.value = isExpanded(id) ? null : id
+  if (expandedIds.value.includes(id)) {
+    expandedIds.value = expandedIds.value.filter(e => e !== id)
+  } else {
+    expandedIds.value.push(id)
+  }
 }
+
+function toggleExpandAll() {
+  if (expandAll.value) {
+    expandAll.value = false
+    expandedIds.value = []
+  } else {
+    expandAll.value = true
+  }
+}
+
 
 
 const monthLabel = computed(() => {

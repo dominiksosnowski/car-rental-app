@@ -4,7 +4,7 @@
       <v-calendar
         :model-value="currentDate"
         is-expanded
-        :first-day-of-week="1"
+        :first-day-of-week="2"
         :show-header="false"
         class="rc-calendar"
        
@@ -571,6 +571,13 @@ function resolveDate(d) {
 .rc-day.is-outside {
   opacity: 0.5;
 }
+
+.rc-day:hover {
+  background-color: rgba(0, 128, 255, 0.3); /* delikatne podświetlenie */
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
 
 .rc-day.is-today {
   outline: 2px solid #2563eb88;
