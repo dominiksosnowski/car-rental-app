@@ -48,8 +48,24 @@
     </v-card-text>
   </v-card>
 </v-col>
+<v-row dense class="d-flex align-center justify-center">
+      <v-card-title class="d-flex align-center justify-center">
+      <v-btn icon @click="prevDay">
+        <v-icon>mdi-chevron-left</v-icon>
+      </v-btn>
+
+      <span class="mx-2 font-weight-bold">
+        {{ formatDate(day) }}
+      </span>
+
+      <v-btn icon @click="nextDay">
+        <v-icon>mdi-chevron-right</v-icon>
+      </v-btn>
+    </v-card-title>
+</v-row>
 <v-row class="mb-6" dense>
   <!-- Przyjęte naprawy -->
+  
   <v-col cols="12" md="6">
     <v-card outlined>
       <v-card-title class="bg-blue-lighten-5">
