@@ -1,30 +1,32 @@
 <template>
   <v-card outlined>
-    <v-card-title class="d-flex align-center justify-center">
-      Karty pracy
-    </v-card-title>
+
 
 
     <v-card-text>
       <!-- Filtry -->
-      <v-row class="mb-4" justify="center" align="center">
-        <v-col cols="12" class="d-flex align-center justify-center">
-                <v-btn icon @click="prevMonth" :disabled="loading">
-                  <v-icon size="32">mdi-chevron-left</v-icon>
-                </v-btn>
+<v-sheet
+  class="pa-3 mb-4 d-flex align-center justify-center"
+  color="blue-lighten-4"
+  rounded
+  elevation="1"
+>
+  <v-btn  @click="prevMonth" :disabled="loading">
+    <v-icon size="32">mdi-chevron-left</v-icon>
+  </v-btn>
 
-                <span class="month-display mx-4">
-                  {{ monthLabel }}
-                </span>
+  <span class="month-display mx-4">
+    {{ monthLabel }}
+  </span>
 
-                <v-btn icon @click="nextMonth" :disabled="loading">
-                  <v-icon size="32">mdi-chevron-right</v-icon>
-                </v-btn>
-        </v-col>
-      </v-row>
+  <v-btn  @click="nextMonth" :disabled="loading">
+    <v-icon size="32">mdi-chevron-right</v-icon>
+  </v-btn>
+</v-sheet>
 
+<v-row class="d-flex align-center justify-md-space-between">
      <v-card-title class="d-flex align-center justify-end">
-            <v-btn
+        <v-btn
         color="primary"
         :block="$vuetify.display.smAndDown"
         size="large"
@@ -34,10 +36,10 @@
         Dodaj wpis
       </v-btn>
     </v-card-title>
-<v-btn @click="toggleExpandAll" color="primary" variant="outlined">
+<v-btn @click="toggleExpandAll" color="primary" size="large">
   {{ expandAll ? 'Zwiń wszystkie' : 'Rozwiń wszystkie' }}
 </v-btn>
-
+</v-row>
 <v-row>
   <v-col
     v-for="group in groupedByEmployee"

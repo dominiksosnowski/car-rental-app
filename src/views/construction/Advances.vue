@@ -1,26 +1,28 @@
 <template>
   <v-card outlined>
-    <v-card-title class="d-flex justify-space-between align-center">
-      Zaliczki
-    </v-card-title>
+
 
     <v-card-text>
       <!-- Filtr po miesiącu -->
-<v-row class="mb-4" justify="center" align="center">
-  <v-col cols="12" class="d-flex align-center justify-center">
-          <v-btn icon @click="prevMonth" :disabled="loading">
-            <v-icon size="32">mdi-chevron-left</v-icon>
-          </v-btn>
+<v-sheet
+  class="pa-3 mb-4 d-flex align-center justify-center"
+  color="blue-lighten-4"
+  rounded
+  elevation="1"
+>
+  <v-btn  @click="prevMonth" :disabled="loading">
+    <v-icon size="32">mdi-chevron-left</v-icon>
+  </v-btn>
 
-          <span class="month-display mx-4">
-            {{ monthLabel }}
-          </span>
+  <span class="month-display mx-4">
+    {{ monthLabel }}
+  </span>
 
-          <v-btn icon @click="nextMonth" :disabled="loading">
-            <v-icon size="32">mdi-chevron-right</v-icon>
-          </v-btn>
-  </v-col>
-</v-row>
+  <v-btn  @click="nextMonth" :disabled="loading">
+    <v-icon size="32">mdi-chevron-right</v-icon>
+  </v-btn>
+</v-sheet>
+
 <v-card-title class="d-flex align-center ">
       <v-btn size="large" color="primary" @click="openDialog()">
         <v-icon start>mdi-cash-plus</v-icon>

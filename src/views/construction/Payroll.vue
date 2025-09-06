@@ -1,22 +1,32 @@
 <template>
   <v-card outlined>
-    <v-card-title>Wypłaty</v-card-title>
     <v-card-text>
-<v-row class="mb-4" justify="center" align="center">
-  <v-col cols="12" class="d-flex align-center justify-center">
-          <v-btn icon @click="prevMonth" :disabled="loading">
-            <v-icon size="32">mdi-chevron-left</v-icon>
-          </v-btn>
+<v-sheet
+  class="pa-3 mb-4 d-flex align-center justify-center"
+  color="blue-lighten-4"
+  rounded
+  elevation="1"
+>
+  <v-btn  @click="prevMonth" :disabled="loading">
+    <v-icon size="32">mdi-chevron-left</v-icon>
+  </v-btn>
 
-          <span class="month-display mx-4">
-            {{ monthLabel }}
-          </span>
+  <span class="month-display mx-4">
+    {{ monthLabel }}
+  </span>
 
-          <v-btn icon @click="nextMonth" :disabled="loading">
-            <v-icon size="32">mdi-chevron-right</v-icon>
-          </v-btn>
+  <v-btn @click="nextMonth" :disabled="loading">
+    <v-icon size="32">mdi-chevron-right</v-icon>
+  </v-btn>
+</v-sheet>
+
+<v-row class="mb-2" justify="center">
+  <v-col cols="12" class="text-center text-h5">
+    <strong>Suma wypłat: </strong>
+    <span class="text-success">{{ formatCurrency(totalNetSum) }}</span>
   </v-col>
 </v-row>
+
       <v-row>
         <v-col
           v-for="item in rows"
@@ -243,6 +253,11 @@ onMounted(async () => {
   await employees.fetchAll()
   await reload()
 })
+
+const totalNetSum = computed(() => {
+  return rows.value.reduce((sum, r) => sum + Number(r.net_sum || 0), 0)
+})
+
 </script>
 
 <style scoped>
