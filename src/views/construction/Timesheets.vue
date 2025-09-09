@@ -147,19 +147,24 @@
     </v-card-title>
 
     <v-card-text>
-      <v-form ref="formRef" v-model="formValid" @submit.prevent="save">
+      <v-form ref="formRef" v-model="formValid" @submit.prevent="save" autocomplete="off">
         <v-row>
           <v-col cols="12">
-            <v-autocomplete
-              :items="employees.list"
-              item-value="id"
-              :item-props="i => ({ title: `${i.first_name} ${i.last_name}` })"
-              v-model="form.employee_id"
-              label="Pracownik"
-              :rules="[v => !!v || 'Wybierz pracownika']"
-              clearable
-              required
-            />
+<v-autocomplete
+  v-model="form.employee_id"
+  :items="activeEmployees"
+  item-value="id"
+  :item-title="item => `${item.first_name} ${item.last_name}`"
+  label="Pracownik"
+  :rules="[v => !!v || 'Wybierz pracownika']"
+  clearable
+  required
+  :filter="(item, queryText) => {
+    const text = `${item.first_name} ${item.last_name}`.toLowerCase()
+    return text.includes(queryText.toLowerCase())
+  }"
+/>
+
           </v-col>
 
           <v-col cols="12">
@@ -440,6 +445,10 @@ function shiftMonth(delta) {
 
 function prevMonth() { shiftMonth(-1) }
 function nextMonth() { shiftMonth(1) }
+
+const activeEmployees = computed(() =>
+  employees.list.filter(e => e.active)
+)
 
 </script>
 <style scoped>

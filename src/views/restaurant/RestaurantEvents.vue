@@ -53,7 +53,7 @@
   <v-card>
     <v-card-title>Dodaj imprezę</v-card-title>
     <v-card-text>
-      <v-form ref="addFormRef" v-model="addFormValid" @submit.prevent="submit">
+      <v-form ref="addFormRef" v-model="addFormValid" @submit.prevent="submit" autocomplete="off">
         <v-text-field v-model="form.event_date" type="date" label="Data" prepend-inner-icon="mdi-calendar" :rules="[required]" required />
         <v-text-field v-model="form.event_time" type="time" label="Godzina" prepend-inner-icon="mdi-clock-outline" :rules="[required]" required />
         <v-text-field v-model="form.title" label="Nazwa wydarzenia" :rules="[required]" required />
@@ -278,7 +278,7 @@
   <v-card>
     <v-card-title>Edytuj imprezę</v-card-title>
     <v-card-text>
-      <v-form ref="editFormRef" v-model="editFormValid" @submit.prevent="saveEdit">
+      <v-form ref="editFormRef" v-model="editFormValid" @submit.prevent="saveEdit" autocomplete="off">
         <v-text-field v-model="editForm.event_date" type="date" label="Data" :rules="[required]" required />
         <v-text-field v-model="editForm.event_time" type="time" label="Godzina" :rules="[required]" required />
         <v-text-field v-model="editForm.title" label="Nazwa wydarzenia" :rules="[required]" required />

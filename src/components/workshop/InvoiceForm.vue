@@ -3,7 +3,7 @@
   <v-card>
     <v-card-title>Dodaj fakturę zakupową</v-card-title>
     <v-card-text>
-      <v-form ref="formRef" v-model="isValid" @submit.prevent="onSubmit">
+      <v-form ref="formRef" v-model="isValid" @submit.prevent="onSubmit" autocomplete="off">
         <v-row dense>
           <v-col cols="12" md="4">
             <v-text-field

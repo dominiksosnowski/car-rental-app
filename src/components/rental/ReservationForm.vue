@@ -1,5 +1,5 @@
 <template>
-  <v-form @submit.prevent="onSubmit" ref="formRef" v-model="formValid">
+  <v-form @submit.prevent="onSubmit" ref="formRef" v-model="formValid" autocomplete="off">
     <v-row>
       <!-- Imię i nazwisko -->
       <v-col cols="12" md="6">

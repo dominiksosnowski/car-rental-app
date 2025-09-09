@@ -102,7 +102,7 @@
       <v-card>
         <v-card-title>{{ editId ? 'Edytuj projekt' : 'Dodaj projekt' }}</v-card-title>
         <v-card-text>
-          <v-form ref="formRef" v-model="formValid" lazy-validation @submit.prevent="saveProject">
+          <v-form ref="formRef" v-model="formValid" lazy-validation @submit.prevent="saveProject" autocomplete="off">
             <v-text-field
               v-model="form.name"
               label="Nazwa projektu"

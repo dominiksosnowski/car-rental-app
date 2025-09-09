@@ -7,7 +7,7 @@
     <v-divider />
 
     <v-card-text>
-      <v-form @submit.prevent="onSubmit" ref="form">
+      <v-form @submit.prevent="onSubmit" ref="form" autocomplete="off">
         <v-row>
           <!-- Imię i nazwisko -->
           <v-col cols="12" md="6">

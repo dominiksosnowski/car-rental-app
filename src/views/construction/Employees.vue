@@ -311,7 +311,7 @@
       {{ editId ? 'Edytuj pracownika' : 'Dodaj pracownika' }}
     </v-card-title>
     <v-card-text>
-      <v-form ref="formRef" v-model="formValid" lazy-validation @submit.prevent="save">
+      <v-form ref="formRef" v-model="formValid" lazy-validation @submit.prevent="save" autocomplete="off">
         <v-text-field
           v-model="form.first_name"
           label="Imię"

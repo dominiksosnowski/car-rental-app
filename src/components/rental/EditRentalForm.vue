@@ -5,7 +5,7 @@
     </v-card-title>
     <v-divider />
     <v-card-text>
-      <v-form @submit.prevent="onSubmit" ref="formRef" v-model="formValid">
+      <v-form @submit.prevent="onSubmit" ref="formRef" v-model="formValid" autocomplete="off">
         <v-row>
           <v-col cols="12" md="6">
             <v-text-field

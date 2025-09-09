@@ -143,18 +143,26 @@
     <v-card>
       <v-card-title>{{ editId ? 'Edytuj zaliczkę' : 'Dodaj zaliczkę' }}</v-card-title>
       <v-card-text>
-        <v-form ref="formRef" v-model="formValid" lazy-validation @submit.prevent="save">
+        <v-form ref="formRef" v-model="formValid" lazy-validation @submit.prevent="save" autocomplete="off">
           <v-row>
             <v-col cols="12" md="6">
-              <v-autocomplete
-                :items="employees.list"
-                item-value="id"
-                :item-props="i => ({ title: `${i.first_name} ${i.last_name}` })"
-                v-model="form.employee_id"
-                label="Pracownik"
-                :rules="[v => !!v || 'Wybierz pracownika']"
-                required
-              />
+<v-autocomplete
+  v-model="form.employee_id"
+  :items="activeEmployees"
+  item-value="id"
+  :item-title="item => `${item.first_name} ${item.last_name}`"
+  label="Pracownik"
+  :rules="[v => !!v || 'Wybierz pracownika']"
+  clearable
+  hide-details="auto"
+  variant="outlined"
+  density="comfortable"
+  :filter="(item, queryText) => {
+    const text = `${item.first_name} ${item.last_name}`.toLowerCase()
+    return text.includes(queryText.toLowerCase())
+  }"
+/>
+
             </v-col>
             <v-col cols="12" md="6">
               <v-text-field
@@ -330,6 +338,9 @@ const expandedId = ref(null)
 function isExpanded(id) { return expandedId.value === id }
 function toggleExpand(id) { expandedId.value = isExpanded(id) ? null : id }
 
+const activeEmployees = computed(() =>
+  employees.list.filter(e => e.active)
+)
 
 </script>
 <style scoped>

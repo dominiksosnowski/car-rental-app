@@ -2,7 +2,7 @@
 <template>
   <!-- ograniczamy szerokość formularza do 50% i centrujemy -->
   <div class="payment-form-wrapper">
-    <v-form @submit.prevent="onSubmit" ref="form">
+    <v-form @submit.prevent="onSubmit" ref="form" autocomplete="off">
       <v-row dense align="center">
         <!-- Kwota -->
         <v-col cols="12" md="4">

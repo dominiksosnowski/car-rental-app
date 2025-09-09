@@ -2,58 +2,105 @@
 <template>
   <v-card flat class="payment-list pa-4">
     <!-- Tytuł historii -->
+     <div>
     <v-card-title class="text-h6">Historia wpłat</v-card-title>
+<v-btn color="primary" @click="dialog = true">
+  <v-icon start>mdi-cash-plus</v-icon>
+  Dodaj wpłatę
+</v-btn>
+</div>
+<div v-if="!payments.length" class="text-center text-medium-emphasis py-4">
+  — Brak wpłat —
+</div>
 
-    <v-list dense>
-      <!-- gdy brak wpłat -->
-      <v-list-item v-if="!payments.length">
-        <v-list-item-content>
-          <v-list-item-title>— Brak wpłat —</v-list-item-title>
-        </v-list-item-content>
-      </v-list-item>
+<v-row dense>
+  <v-col
+    v-for="p in payments"
+    :key="p.id"
+    cols="12"
+    class="paymentDivider"
+  >
+    <v-sheet rounded outlined class="pa-3">
+      <!-- Data -->
+      <div class="mb-1 d-flex align-center">
+        <v-icon size="18" color="blue" class="me-1">mdi-calendar</v-icon>
+        <strong>Data:</strong> {{ formatDateOnly(p.paid_at) }}
+      </div>
 
-      <!-- lista wpłat -->
-      <v-list-item
-        v-for="p in payments"
-        :key="p.id"
-        class="payment-item"
-      >
-        <v-list-item-content class="d-flex justify-space-between align-center">
-          <span>
-            {{ formatDateTime(p.paid_at) }} – {{ p.amount.toFixed(2) }} zł
-            <small v-if="p.payment_method">
-              ({{ p.payment_method }})
-            </small>
-            <small v-if="p.payment_method">
-             Notatki: ({{ p.notes }})
-            </small>
-          </span>
+      <!-- Kwota -->
+      <div class="mb-1 d-flex align-center">
+        <v-icon size="18" color="green" class="me-1">mdi-cash</v-icon>
+        <strong>Kwota:</strong> {{ p.amount.toFixed(2) }} zł
+      </div>
 
-          <!-- przycisk usuwania inline -->
-          <v-btn icon small color="error" @click="remove(p.id)">
-            <v-icon>mdi-delete</v-icon>
-          </v-btn>
-        </v-list-item-content>
-      </v-list-item>
-    </v-list>
+      <!-- Metoda płatności -->
+      <div v-if="p.payment_method" class="mb-1 d-flex align-center">
+        <v-icon size="18" color="teal" class="me-1">mdi-credit-card-outline</v-icon>
+        <strong>Płatność:</strong> {{ p.payment_method }}
+      </div>
+
+      <!-- Notatki -->
+      <div v-if="p.notes" class="mb-1 d-flex align-center">
+        <v-icon size="18" color="grey" class="me-1">mdi-note-text-outline</v-icon>
+        <strong>Notatki:</strong> {{ p.notes }}
+      </div>
+
+      <!-- Usuń -->
+      <div class="mt-2 d-flex justify-end">
+        <v-btn
+          variant="outlined"
+          color="error"
+          size="small"
+          @click="remove(p.id)"
+        >
+          <v-icon start>mdi-delete</v-icon>
+          Usuń
+        </v-btn>
+      </div>
+    </v-sheet>
+  </v-col>
+  
+</v-row>
+
 
     <v-divider class="my-4"/>
 
     <!-- Tytuł formularza -->
-    <v-card-subtitle class="text-h6">Dodaj wpłatę</v-card-subtitle>
-    <PaymentForm
-      :rentalId="rentalId"
-      @added="onPaymentAdded"
-      class="mt-2"
-    />
+<!-- Przycisk otwierający dialog -->
+
+
+<!-- Dialog z formularzem -->
+<v-dialog v-model="dialog" max-width="600px">
+  <v-card>
+    <v-card-title>Dodaj wpłatę</v-card-title>
+    <v-card-text>
+      <PaymentForm
+        :rentalId="rentalId"
+        @added="onPaymentAddedDialog"
+        class="mt-2"
+      />
+    </v-card-text>
+    <v-card-actions class="justify-end">
+      <v-btn variant="text" @click="dialog = false">Anuluj</v-btn>
+    </v-card-actions>
+  </v-card>
+</v-dialog>
   </v-card>
 </template>
 
 <script setup>
-import { computed, onMounted }       from 'vue'
+import { ref, computed, onMounted }       from 'vue'
 import { storeToRefs }               from 'pinia'
 import { usePaymentStore }           from '@/stores/paymentStore'
 import PaymentForm                   from '@/components/rental/PaymentForm.vue'
+
+const dialog = ref(false)
+
+function onPaymentAddedDialog() {
+  paymentStore.fetchAll()
+  emit('added')
+  dialog.value = false // zamknięcie po dodaniu
+}
 
 const props = defineProps({
   rentalId: { type: [String, Number], required: true }
@@ -86,18 +133,23 @@ function onPaymentAdded() {
   emit('added')
 }
 
-function formatDateTime(d) {
-  return d
-    ? new Intl.DateTimeFormat('pl-PL', {
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit'
-      }).format(new Date(d))
-    : '–'
+function formatDateOnly(dateStr) {
+  const [y, m, d] = dateStr.split('-')
+  const months = [
+    'stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca',
+    'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'
+  ]
+  const monthName = months[Number(m) - 1]
+  return `${Number(d)} ${monthName} ${Number(y)}`
 }
+
+
+
+
 </script>
 
 <style scoped>
-.payment-item {
-  /* Każdy item to flex-box z justify-space-between */
+.paymentDivider{
+  border-bottom: 1px solid rgba(0, 0, 0, 0.5);
 }
 </style>

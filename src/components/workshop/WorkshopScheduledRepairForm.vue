@@ -5,6 +5,7 @@
     v-model="valid"
     @submit.prevent="submit"
     lazy-validation
+    autocomplete="off"
   >
     <!-- 1. Data przyjazdu -->
     <v-row>
