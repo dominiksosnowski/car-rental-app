@@ -119,7 +119,7 @@ async function onSubmit() {
     amount:         amount.value,
     payment_method: method.value,
     notes:          notes.value || null,
-    paid_at:        paidAt.value
+    paid_at:        date.value
   }
 
   const added = await paymentStore.addPayment(payload)
