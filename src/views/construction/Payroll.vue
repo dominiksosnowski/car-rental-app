@@ -20,12 +20,35 @@
   </v-btn>
 </v-sheet>
 
-<v-row class="mb-2" justify="center">
-  <v-col cols="12" class="text-center text-h5">
-    <strong>Suma wypłat: </strong>
-    <span class="text-success">{{ formatCurrency(totalNetSum) }}</span>
-  </v-col>
-</v-row>
+<v-sheet
+  class="pa-3 mb-4 text-h5"
+  color="blue-lighten-5"
+  rounded
+  elevation="1"
+>
+  <v-row align="center">
+    <!-- Suma wypłat -->
+    <v-col cols="12" md="6" class="d-flex align-center justify-space-between justify-md-end">
+      <strong>Suma wypłat:&nbsp;</strong>
+      <span class="text-success">{{ formatCurrency(totalGrossSum) }}</span>
+    </v-col>
+
+    <!-- Separator tylko na desktop -->
+    <v-divider
+      vertical
+      class="d-none d-md-flex"
+      color="black"
+      thickness="2"
+    ></v-divider>
+
+    <!-- Pozostało do wypłaty -->
+    <v-col cols="12" md="5" class="d-flex align-center justify-space-between justify-md-start">
+      <strong>Pozostało do wypłaty:&nbsp;</strong>
+      <span class="text-success">{{ formatCurrency(totalNetSum) }}</span>
+    </v-col>
+  </v-row>
+</v-sheet>
+
 
       <v-row>
         <v-col
@@ -186,8 +209,31 @@ const { smAndDown } = useDisplay()
 const isMobile = computed(() => smAndDown.value)
 
 const month = ref(new Date().toISOString().slice(0,7))
-const rows = computed(() => payroll.rows)
+// const rows = computed(() => payroll.rows)
 const loading = computed(() => payroll.loading)
+const BONUS_IDS = [6, 7] // Marek Kuśmierski, Leszek Murawski
+const BONUS_PER_HOUR = 5
+
+const rows = computed(() => {
+  return payroll.rows.map(r => {
+    if (BONUS_IDS.includes(r.employee_id)) {
+      const bonus = Number(r.hours_sum || 0) * BONUS_PER_HOUR
+      const updatedDetails = r.details?.map(d => ({
+        ...d,
+        earned: Number(d.earned || 0) + Number(d.hours || 0) * BONUS_PER_HOUR
+      })) || []
+      return {
+        ...r,
+        gross_sum: Number(r.gross_sum || 0) + bonus,
+        net_sum: Number(r.net_sum || 0) + bonus,
+        details: updatedDetails
+      }
+    }
+    return r
+  })
+})
+
+
 
 // Tylko jeden wiersz rozwinięty
 const expandedId = ref(null)
@@ -257,6 +303,11 @@ onMounted(async () => {
 const totalNetSum = computed(() => {
   return rows.value.reduce((sum, r) => sum + Number(r.net_sum || 0), 0)
 })
+
+const totalGrossSum = computed(() => {
+  return rows.value.reduce((sum, r) => sum + Number(r.gross_sum || 0), 0)
+})
+
 
 </script>
 
