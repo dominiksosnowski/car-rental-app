@@ -16,9 +16,46 @@
               <v-btn icon @click="nextMonth"><v-icon>mdi-chevron-right</v-icon></v-btn>
             </div>
           </v-card-title>
-          <v-card-text>
-            <div>Przychody: <strong>{{ formatCurrency(earningsSelectedMonth) }}</strong></div>
-          </v-card-text>
+<v-card-text>
+  <v-sheet
+    color="grey-lighten-4"
+    rounded
+    class="pa-4"
+  >
+    <!-- Przychody -->
+    <div class="payment-row green-row mb-3">
+      <v-icon color="green" class="me-2">mdi-cash</v-icon>
+      <strong class="label">Przychody:</strong>&nbsp;
+      <span class="value">{{ formatCurrency(earningsSelectedMonth) }}</span>
+    </div>
+
+    <!-- Gotówka -->
+    <div class="payment-row orange-row mb-2">
+      <v-icon color="deep-orange" class="me-2">mdi-cash</v-icon>
+      <strong class="label">Gotówka:</strong>&nbsp;
+      <span class="value">{{ formatCurrency(paymentsByMethod.cash) }}</span>
+    </div>
+
+    <!-- Karta -->
+    <div class="payment-row blue-row mb-2">
+      <v-icon color="indigo" class="me-2">mdi-credit-card-outline</v-icon>
+      <strong class="label">Karta:</strong>&nbsp;
+      <span class="value">{{ formatCurrency(paymentsByMethod.card) }}</span>
+    </div>
+
+    <!-- Przelew -->
+    <div class="payment-row purple-row">
+      <v-icon color="purple" class="me-2">mdi-bank-transfer</v-icon>
+      <strong class="label">Przelew:</strong>&nbsp;
+      <span class="value">{{ formatCurrency(paymentsByMethod.transfer) }}</span>
+    </div>
+  </v-sheet>
+</v-card-text>
+
+
+
+
+
         </v-card>
       </v-col>
     </v-row>
@@ -391,4 +428,66 @@ const headers = [
   { title: 'Nr rej.', key: 'reg_number' },
   { title: 'Przegląd', key: 'inspection_date', align: 'center' }
 ]
+
+const paymentsByMethod = computed(() => {
+  const start = new Date(currentMonth.value.getFullYear(), currentMonth.value.getMonth(), 1)
+  const end = new Date(currentMonth.value.getFullYear(), currentMonth.value.getMonth() + 1, 0, 23, 59, 59)
+
+  const filtered = payments.value.filter(p => {
+    const d = new Date(p.created_at || p.date)
+    return d >= start && d <= end
+  })
+
+  return {
+    cash: filtered
+      .filter(p => p.payment_method?.toLowerCase() === 'gotówka')
+      .reduce((sum, p) => sum + Number(p.amount), 0),
+    card: filtered
+      .filter(p => p.payment_method?.toLowerCase() === 'karta')
+      .reduce((sum, p) => sum + Number(p.amount), 0),
+    transfer: filtered
+      .filter(p => p.payment_method?.toLowerCase() === 'przelew')
+      .reduce((sum, p) => sum + Number(p.amount), 0)
+  }
+})
+
 </script>
+<style scoped>
+.payment-row {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-size: 1.1rem;
+}
+
+.payment-row .label {
+  font-weight: bold;
+}
+
+.payment-row .value {
+  font-weight: normal;
+}
+
+/* Warianty kolorów z wyraźnym odróżnieniem */
+.green-row {
+  background-color: rgba(76, 175, 80, 0.12);   /* zielony */
+  border: 1px solid rgba(56, 142, 60, 0.4);
+}
+
+.orange-row {
+  background-color: rgba(255, 152, 0, 0.12);   /* pomarańczowy */
+  border: 1px solid rgba(245, 124, 0, 0.4);
+}
+
+.blue-row {
+  background-color: rgba(63, 81, 181, 0.12);   /* niebieski/indigo */
+  border: 1px solid rgba(48, 63, 159, 0.4);
+}
+
+.purple-row {
+  background-color: rgba(156, 39, 176, 0.12);  /* fioletowy */
+  border: 1px solid rgba(123, 31, 162, 0.4);
+}
+
+</style>

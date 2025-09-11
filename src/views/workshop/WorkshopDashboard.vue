@@ -22,30 +22,56 @@
       </v-btn>
     </v-card-title>
 
-    <v-card-text>
-      <!-- PRZYCHODY -->
-      <div class="d-flex align-center mb-2 px-2 py-1 rounded"
-           style="background-color: #e8f5e9; border: 1px solid #c8e6c9;">
-        <v-icon color="green" class="me-2">mdi-cash</v-icon>
-        Przychody:&nbsp;<span class="font-weight-bold">{{ formatCurrency(earnings) }}</span>
-      </div>
+<v-card-text>
+  <v-sheet color="grey-lighten-4" rounded class="pa-4">
+    <!-- Przychody -->
+    <div class="payment-row green-row mb-3">
+      <v-icon color="green" class="me-2">mdi-cash</v-icon>
+      <strong class="label">Przychody:</strong>&nbsp;
+      <span class="value">{{ formatCurrency(earnings) }}</span>
+    </div>
 
-      <!-- KOSZTY -->
-      <div class="d-flex align-center mb-2 px-2 py-1 rounded"
-           style="background-color: #ffebee; border: 1px solid #ffcdd2;">
-        <v-icon color="red" class="me-2">mdi-file-document</v-icon>
-        Koszty:&nbsp;<span class="font-weight-bold">{{ formatCurrency(costs) }}</span>
+    <!-- Metody płatności (jeden kontener) -->
+    <div class="payment-group mb-3">
+      <div class="payment-item" style="--bar-color: #ef6c00;">
+        <v-icon size="18" color="deep-orange" class="me-2">mdi-cash</v-icon>
+        <strong class="label">Gotówka:</strong>&nbsp;
+        <span class="value">{{ formatCurrency(paymentBreakdown.cash) }}</span>
       </div>
-
-      <v-divider class="my-3" />
-
-      <!-- BILANS -->
-      <div class="d-flex align-center px-2 py-1 rounded"
-           style="background-color: #e3f2fd; border: 1px solid #bbdefb;">
-        <v-icon color="blue" class="me-2">mdi-scale-balance</v-icon>
-        Bilans:&nbsp;<span class="font-weight-bold">{{ formatCurrency(earnings - costs) }}</span>
+      <div class="payment-item" style="--bar-color: #3f51b5;">
+        <v-icon size="18" color="indigo" class="me-2">mdi-credit-card-outline</v-icon>
+        <strong class="label">Karta:</strong>&nbsp;
+        <span class="value">{{ formatCurrency(paymentBreakdown.card) }}</span>
       </div>
-    </v-card-text>
+      <div class="payment-item" style="--bar-color: #00897b;">
+        <v-icon size="18" color="teal" class="me-2">mdi-bank-transfer</v-icon>
+        <strong class="label">Przelew:</strong>&nbsp;
+        <span class="value">{{ formatCurrency(paymentBreakdown.transfer) }}</span>
+      </div>
+      <div class="payment-item" style="--bar-color: #757575;">
+        <v-icon size="18" color="grey" class="me-2">mdi-dots-horizontal</v-icon>
+        <strong class="label">Inne:</strong>&nbsp;
+        <span class="value">{{ formatCurrency(paymentBreakdown.other) }}</span>
+      </div>
+    </div>
+
+    <!-- Koszty -->
+    <div class="payment-row red-row mb-3">
+      <v-icon color="red" class="me-2">mdi-file-document</v-icon>
+      <strong class="label">Koszty:</strong>&nbsp;
+      <span class="value">{{ formatCurrency(costs) }}</span>
+    </div>
+
+    <!-- Bilans -->
+    <div class="payment-row lightblue-row">
+      <v-icon color="blue" class="me-2">mdi-scale-balance</v-icon>
+      <strong class="label">Bilans:</strong>&nbsp;
+      <span class="value">{{ formatCurrency(earnings - costs) }}</span>
+    </div>
+  </v-sheet>
+</v-card-text>
+
+
   </v-card>
 </v-col>
 <v-row dense class="d-flex align-center justify-center">
@@ -317,30 +343,41 @@ const weekStart  = startOfWeek(now)
 const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
 
 
-// breakdown dla wykresu wg zakresu chartStart–chartEnd
-const paymentBreakdownByChart = computed(() => {
-  if (!chartStart.value || !chartEnd.value) {
-    return { cash:0, card:0, transfer:0, other:0 }
-  }
-  const from = new Date(chartStart.value); from.setHours(0,0,0,0)
-  const to   = new Date(chartEnd.value);   to.setHours(23,59,59,999)
+function normalizePaymentMethod(pm) {
+  const k = (pm || '').toString().toLowerCase()
+  if (k.includes('gotów') || k.includes('gotow') || k === 'cash') return 'cash'
+  if (k.includes('kart') || k === 'card') return 'card'
+  if (k.includes('przele') || k === 'transfer') return 'transfer'
+  return 'other'
+}
 
-  return workshop_active_repairs.value
-    .filter(r => r.completed)
-    .filter(r => {
-      const d = new Date(r.completion_date)
-      return d >= from && d <= to
-    })
-    .reduce((acc,r) => {
-      let key = (r.payment_method||'').toLowerCase()
-      if (key.includes('gotów'))    key = 'cash'
-      else if (key.includes('kart')) key = 'card'
-      else if (key.includes('przele')) key = 'transfer'
-      else key = 'other'
-      acc[key] = (acc[key]||0) + sumParts(r)
-      return acc
-    }, { cash:0, card:0, transfer:0, other:0 })
-})
+const paymentBreakdown = ref({ cash: 0, card: 0, transfer: 0, other: 0 })
+
+async function fetchPaymentBreakdown(year, m) {
+  const monthStr = String(m).padStart(2, '0')
+  const lastDay = getLastDayOfMonth(year, m)
+
+  const { data, error } = await supabase
+    .from('workshop_active_repairs')
+    .select('due_amount, completed, completion_date, payment_method')
+    .eq('completed', true)
+    .gte('completion_date', `${year}-${monthStr}-01`)
+    .lte('completion_date', `${year}-${monthStr}-${lastDay}`)
+
+  if (error) {
+    console.error('Błąd pobierania podziału płatności:', error)
+    paymentBreakdown.value = { cash: 0, card: 0, transfer: 0, other: 0 }
+    return
+  }
+
+  const acc = { cash: 0, card: 0, transfer: 0, other: 0 }
+  for (const row of data || []) {
+    const key = normalizePaymentMethod(row.payment_method)
+    acc[key] += Number(row.due_amount || 0)
+  }
+  paymentBreakdown.value = acc
+}
+
 
 // tabele
 const inProgressHeaders = [
@@ -455,20 +492,21 @@ function getLastDayOfMonth(year, month) {
 }
 
 
-// 🔄 Łączne pobranie danych miesiąca
 async function fetchMonthData() {
   loading.value = true
   const [y, m] = month.value.split('-').map(Number)
 
   const [earningsTotal, costsTotal] = await Promise.all([
     fetchEarnings(y, m),
-    fetchCosts(y, m)
+    fetchCosts(y, m),
+    fetchPaymentBreakdown(y, m) // uzupełni paymentBreakdown.value
   ])
 
   earnings.value = earningsTotal
   costs.value = costsTotal
   loading.value = false
 }
+
 
 // 🚀 Start
 onMounted(() => {
@@ -522,4 +560,43 @@ const completedToday = computed(() => {
 <style scoped>
 .pa-6 { padding: 24px; }
 .mb-4 { margin-bottom: 1rem; }
+.payment-row {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-size: 1.1rem;
+}
+.payment-row .label { font-weight: bold; }
+.payment-row .value { font-weight: normal; }
+
+/* Grupa metod płatności: jedno obramowanie dla całego kontenera */
+.payment-group {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fafafa;
+  padding: 0.4rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+/* Pojedyncza metoda: mniejsza czcionka, pasek po lewej i subtelne tło w kolorze paska */
+.payment-item {
+  display: flex;
+  align-items: center;
+  padding: 0.3rem 0.6rem;
+  border-left: 6px solid var(--bar-color, #ccc);
+  border-radius: 4px;
+  font-size: 0.95rem;
+  background-color: color-mix(in srgb, var(--bar-color) 10%, transparent);
+}
+
+.payment-item .label { font-weight: bold; }
+.payment-item .value { font-weight: normal; }
+
+/* Kolory głównych wierszy */
+.green-row     { background-color: rgba(76,175,80,0.12);   border: 1px solid rgba(56,142,60,0.4); }
+.red-row       { background-color: rgba(244,67,54,0.12);   border: 1px solid rgba(211,47,47,0.4); }
+.lightblue-row { background-color: rgba(33,150,243,0.12);  border: 1px solid rgba(25,118,210,0.4); }
+
 </style>

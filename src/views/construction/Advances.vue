@@ -108,17 +108,27 @@
     <v-icon size="18" class="me-1 text-grey">mdi-note-text-outline</v-icon>
     <strong>Notatki:</strong> {{ adv.note }}
   </div>
-  <div class="mt-2 d-flex justify-end">
-    <v-btn
-      variant="outlined"
-      color="error"
-      class="delete-btn"
-      @click="remove(adv.id)"
-    >
-      <v-icon size="18" class="me-1 text-red">mdi-delete</v-icon>
-      <span><strong>Usuń zaliczkę</strong></span>
-    </v-btn>
-  </div>
+<div class="mt-2 d-flex justify-end ga-2">
+  <v-btn
+    variant="outlined"
+    color="primary"
+    @click="openDialog(adv)"
+  >
+    <v-icon size="18" class="me-1 text-primary">mdi-pencil</v-icon>
+    <span><strong>Edytuj</strong></span>
+  </v-btn>
+
+  <v-btn
+    variant="outlined"
+    color="error"
+    class="delete-btn"
+    @click="remove(adv.id)"
+  >
+    <v-icon size="18" class="me-1 text-red">mdi-delete</v-icon>
+    <span><strong>Usuń</strong></span>
+  </v-btn>
+</div>
+
 </v-sheet>
 
 <!-- separator między zaliczkami -->

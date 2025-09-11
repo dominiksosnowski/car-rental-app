@@ -43,6 +43,20 @@ export const useAdvancesStore = defineStore('advances', {
       }
     },
 
+    async update(id, entry) {
+      try {
+        const { error } = await supabase
+          .from('advances')
+          .update(entry)
+          .eq('id', id)
+
+        if (error) throw error
+      } catch (err) {
+        console.error('Błąd edytowania zaliczki:', err)
+        this.error = err.message
+      }
+    },
+
     async remove(id) {
       try {
         const { error } = await supabase

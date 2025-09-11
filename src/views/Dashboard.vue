@@ -67,7 +67,7 @@ const cards = [
   { title: 'Warsztat', icon: 'mdi-wrench', color: '#fb8c00', img: '/logos/workshop.png', route: 'Workshop', text: 'Przejdź do panelu zarządzania naprawami' },
   { title: 'Budowlanka', icon: 'mdi-account-hard-hat-outline', color: '#43a047', img: '/logos/construction.png', route: 'ConstructionLayout', text: 'Przejdź do panelu budowlanego' },
   { title: 'Leśna', icon: 'mdi-silverware-fork-knife', color: '#8e24aa', img: '/logos/restaurant.png', route: 'RestaurantLayout', text: 'Przejdź do panelu imprez' },
-  { title: 'Dominik', icon: 'mdi-format-list-checks', color: '#e53935', img: '/logos/ToDo.png', route: 'DominikLayout', text: 'Przejdź do panelu zadań' }
+  { title: 'Sprawy organizacyjne', icon: 'mdi-format-list-checks', color: '#e53935', img: '/logos/ToDo.png', route: 'OrganizationalPanel', text: 'Przejdź do panelu organizacyjnego' }
 ]
 
 // Mapowanie: email -> dozwolone tytuły kart

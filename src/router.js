@@ -28,6 +28,13 @@ import Payroll from '@/views/construction/Payroll.vue'
 import ProjectsView from '@/views/construction/ProjectsView.vue'
 import ProjectsDashboard from '@/views/construction/ProjectsDashboard.vue'
 
+// Organizational
+import OrganizationalPanel from '@/views/OrganizationalPanel.vue'
+import OrganizationalHome from '@/views/organizational/OrganizationalHome.vue'
+import OrganizationalTodo from '@/views/organizational/OrganizationalTodo.vue'
+import OrganizationalMoneyGiven from '@/views/organizational/OrganizationalMoneyGiven.vue'
+import OrganizationalDone from '@/views/organizational/OrganizationalDone.vue'
+import OrganizationalMonthlyTasks from '@/views/organizational/OrganizationalMonthlyTasks.vue'
 
 const routes = [
   {
@@ -95,18 +102,18 @@ const routes = [
   ]
 },
 
-
-
   {
-    path: '/dominik',
-    name: 'DominikLayout',
+    path: '/organizational',
+    name: 'OrganizationalPanel',
+    component: OrganizationalPanel,
     meta: { requiresAuth: true },
-    redirect: '/dominik/tasks',
-    component: () => import('@/views/dominik/DominikLayout.vue'),
+    redirect: '/organizational/home',
     children: [
-      { path: '', redirect: { name: 'DominikTasks' } },
-      { path: 'tasks', name: 'DominikTasks', component: () => import('@/views/dominik/DominikTasks.vue') },
-      { path: 'done', name: 'DominikDone', component: () => import('@/views/dominik/DominikDone.vue') }
+      { path: 'home', name: 'OrganizationalHome', component: OrganizationalHome },
+      { path: 'todo', name: 'OrganizationalTodo', component: OrganizationalTodo },
+      { path: 'money-given', name: 'OrganizationalMoneyGiven', component: OrganizationalMoneyGiven },
+      { path: 'done', name: 'OrganizationalDone', component: OrganizationalDone },
+      { path: 'monthly-tasks', name: 'OrganizationalMonthlyTasks', component: OrganizationalMonthlyTasks }
     ]
   },
 
