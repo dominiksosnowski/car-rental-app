@@ -27,7 +27,7 @@
         W tym tygodniu
       </v-card-title>
       <v-card-text>
-        <TaskList :show-actions="false" :items="thisWeek" />
+        <TaskList   mode="todo" :show-actions="false" :items="thisWeek" @delete="deleteItem"/>
       </v-card-text>
     </v-card>
 
@@ -38,7 +38,7 @@
         W tym miesiącu
       </v-card-title>
       <v-card-text>
-        <TaskList :show-actions="false" :items="thisMonthOnly" />
+        <TaskList   mode="todo" :show-actions="false" :items="thisMonthOnly" @delete="deleteItem"/>
       </v-card-text>
     </v-card>
   </v-container>
@@ -106,6 +106,13 @@ function shiftMonth(delta) {
 
 function prevMonth() { shiftMonth(-1) }
 function nextMonth() { shiftMonth(1) }
+
+async function deleteItem(id) {
+  if (confirm('Na pewno usunąć to zadanie?')) {
+    await store.remove(id)
+  }
+}
+
 
 onMounted(() => {
   store.fetchDone()

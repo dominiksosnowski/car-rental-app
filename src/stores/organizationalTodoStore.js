@@ -67,5 +67,20 @@ export const useOrganizationalTodoStore = defineStore('organizationalTodo', () =
     else await fetchAll()
   }
 
-  return { items, loading, fetchAll, fetchDone, add, update, markDone }
+  async function remove(id) {
+  const { error } = await supabase
+    .from('organizational_todo') // upewnij się, że to dobra tabela
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Błąd usuwania:', error)
+  } else {
+    // lokalna aktualizacja, żeby lista nie skakała
+    items.value = items.value.filter(t => t.id !== id)
+  }
+}
+
+
+  return { items, loading, fetchAll, fetchDone, add, update, markDone, remove }
 })

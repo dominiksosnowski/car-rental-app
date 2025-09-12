@@ -33,7 +33,7 @@
         Zaległe
       </v-card-title>
       <v-card-text>
-        <TaskList :items="overdue" @edit="openDialog" @done="markAsDone" />
+        <TaskList mode="todo" :items="overdue" @edit="openDialog"  @toggle-done="toggleDone" @delete="deleteItem"/>
       </v-card-text>
     </v-card>
 
@@ -44,7 +44,7 @@
         W tym tygodniu
       </v-card-title>
       <v-card-text>
-        <TaskList :items="thisWeek" @edit="openDialog" @done="markAsDone" />
+        <TaskList mode="todo" :items="thisWeek" @edit="openDialog"@toggle-done="toggleDone" @delete="deleteItem"/>
       </v-card-text>
     </v-card>
 
@@ -55,7 +55,7 @@
         W tym miesiącu
       </v-card-title>
       <v-card-text>
-        <TaskList :items="thisMonthOnly" @edit="openDialog" @done="markAsDone" />
+        <TaskList mode="todo" :items="thisMonthOnly" @edit="openDialog" @toggle-done="toggleDone" @delete="deleteItem"/>
       </v-card-text>
     </v-card>
 
@@ -198,6 +198,16 @@ function shiftMonth(delta) {
 
 function prevMonth() { shiftMonth(-1) }
 function nextMonth() { shiftMonth(1) }
+
+async function deleteItem(id) {
+  if (confirm('Na pewno usunąć to zadanie?')) {
+    await store.remove(id)
+  }
+}
+async function toggleDone(payload) {
+  // payload = { id, done }
+  await store.update(payload.id, { done: payload.done })
+}
 
 onMounted(() => {
   store.fetchAll()

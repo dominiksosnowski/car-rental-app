@@ -20,12 +20,21 @@
       </v-btn>
     </v-sheet>
 
-    <!-- Przycisk dodaj -->
-    <div class="d-flex justify-start mb-4">
-      <v-btn color="primary" @click="openDialog()">
-        <v-icon start>mdi-plus</v-icon> Dodaj zadanie
-      </v-btn>
-    </div>
+    <!-- Przyciski akcji -->
+      <div class="mb-2">
+        Liczba zadań: {{ filteredItems.length }}
+      </div>
+      <div class="mb-2">
+        <v-btn color="primary" @click="openDialog()">
+          <v-icon start>mdi-plus</v-icon> Dodaj zadanie
+        </v-btn>
+      </div>
+      <div class="mb-4">
+        <v-btn color="secondary" @click="copyPrevMonth">
+          <v-icon start>mdi-content-copy</v-icon> Skopiuj z poprzedniego miesiąca
+        </v-btn>
+      </div>
+
 
     <!-- Lista zadań -->
     <v-card outlined>
@@ -36,9 +45,10 @@
       <v-card-text>
         <TaskList
           :items="filteredItems"
+          mode="monthly"
           @edit="openDialog"
-          @done="markAsDone"
           @delete="deleteItem"
+          @toggle-done="toggleDone"
         />
       </v-card-text>
     </v-card>
@@ -69,10 +79,6 @@
               label="Notatki"
               rows="3"
             />
-            <v-switch
-              v-model="editedItem.recurring"
-              label="Cykliczne"
-            />
           </v-form>
         </v-card-text>
         <v-card-actions>
@@ -93,7 +99,7 @@ import TaskList from '@/components/organizational/TaskList.vue'
 const store = useOrganizationalMonthlyTasksStore()
 
 const dialog = ref(false)
-const editedItem = ref({ id: null, date: '', name: '', note: '', recurring: true })
+const editedItem = ref({ date: '', name: '', note: '', recurring: true })
 const formRef = ref(null)
 
 const month = ref(new Date().toISOString().slice(0, 7))
@@ -104,18 +110,26 @@ const monthLabel = computed(() => {
 })
 
 const filteredItems = computed(() => {
-  return store.items.filter(item => {
-    if (!item.date) return false
-    const d = new Date(item.date)
-    const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    return ym === month.value
-  })
+  return [...store.items]
+    .filter(item => {
+      if (!item.date) return false
+      const d = new Date(item.date)
+      const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      return ym === month.value
+    })
+    .sort((a, b) => {
+      const da = new Date(a.date)
+      const db = new Date(b.date)
+      return da - db // sortowanie tylko po dacie
+    })
 })
+
+
 
 function openDialog(item = null) {
   editedItem.value = item
     ? { ...item }
-    : { id: null, date: month.value + '-01', name: '', note: '', recurring: true }
+    : { date: month.value + '-01', name: '', note: '', recurring: true }
   dialog.value = true
 }
 
@@ -139,6 +153,11 @@ async function markAsDone(id) {
   await store.markDone(id)
 }
 
+async function copyPrevMonth() {
+  const [y, m] = month.value.split('-').map(Number)
+  await store.copyFromPreviousMonth(y, m)
+}
+
 function shiftMonth(delta) {
   const [y, m] = month.value.split('-').map(Number)
   const d = new Date(y, m - 1 + delta, 1)
@@ -148,15 +167,15 @@ function shiftMonth(delta) {
 function prevMonth() { shiftMonth(-1) }
 function nextMonth() { shiftMonth(1) }
 
-watch(month, async (newVal) => {
-  const [y, m] = newVal.split('-').map(Number)
-  await store.ensureRecurringTasksForMonth(y, m)
+watch(month, async () => {
   await store.fetchAll()
 })
 
+async function toggleDone(item) {
+  await store.update(item.id, { done: item.done })
+}
+
 onMounted(async () => {
-  const [y, m] = month.value.split('-').map(Number)
-  await store.ensureRecurringTasksForMonth(y, m)
   await store.fetchAll()
 })
 </script>

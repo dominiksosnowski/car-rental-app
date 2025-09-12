@@ -6,12 +6,11 @@ export const useOrganizationalMonthlyTasksStore = defineStore('organizationalMon
   const items = ref([])
   const loading = ref(false)
 
-  async function fetchAll(month) {
+  async function fetchAll() {
     loading.value = true
     const { data, error } = await supabase
       .from('organizational_monthly_tasks')
       .select('*')
-      .order('date', { ascending: true })
 
     if (error) {
       console.error('Błąd pobierania:', error)
@@ -22,21 +21,38 @@ export const useOrganizationalMonthlyTasksStore = defineStore('organizationalMon
   }
 
   async function add(entry) {
+    const { id, ...data } = entry // odcinamy id, jeśli jest
     const { error } = await supabase
       .from('organizational_monthly_tasks')
-      .insert([entry])
+      .insert([{
+        name: data.name,
+        note: data.note,
+        date: data.date,
+        recurring: data.recurring,
+        done: data.done ?? false
+      }])
+
     if (error) console.error('Błąd dodawania:', error)
     else await fetchAll()
   }
 
-  async function update(id, entry) {
-    const { error } = await supabase
-      .from('organizational_monthly_tasks')
-      .update(entry)
-      .eq('id', id)
-    if (error) console.error('Błąd edycji:', error)
-    else await fetchAll()
+async function update(id, entry) {
+  const { error } = await supabase
+    .from('organizational_monthly_tasks')
+    .update(entry)
+    .eq('id', id)
+
+  if (error) {
+    console.error('Błąd edycji:', error)
+  } else {
+    // lokalna aktualizacja bez fetchAll
+    const idx = items.value.findIndex(t => t.id === id)
+    if (idx !== -1) {
+      items.value[idx] = { ...items.value[idx], ...entry }
+    }
   }
+}
+
 
   async function remove(id) {
     const { error } = await supabase
@@ -56,55 +72,71 @@ export const useOrganizationalMonthlyTasksStore = defineStore('organizationalMon
     else await fetchAll()
   }
 
-  // Automatyczne dodanie zadań na nowy miesiąc
-  async function ensureRecurringTasksForMonth(year, month) {
-    const firstDay = new Date(year, month - 1, 1).toISOString().slice(0, 10)
-    const lastDay = new Date(year, month, 0).toISOString().slice(0, 10)
+  // Nowa funkcja: kopiowanie zadań z poprzedniego miesiąca
+async function copyFromPreviousMonth(year, month) {
+  // Poprzedni miesiąc
+  const prevMonth = month - 1
+  const prevYear = prevMonth === 0 ? year - 1 : year
+  const prevMonthIndex = prevMonth === 0 ? 11 : prevMonth - 1
 
-    // Sprawdź, czy są już zadania w tym miesiącu
-    const { data: existing, error: err1 } = await supabase
-      .from('organizational_monthly_tasks')
-      .select('*')
-      .gte('date', firstDay)
-      .lte('date', lastDay)
+  // Pierwszy dzień poprzedniego miesiąca
+  const prevFirst = `${prevYear}-${String(prevMonthIndex + 1).padStart(2, '0')}-01`
 
-    if (err1) {
-      console.error('Błąd sprawdzania istniejących zadań:', err1)
-      return
-    }
+  // Ostatni dzień poprzedniego miesiąca
+  const lastDay = new Date(prevYear, prevMonthIndex + 1, 0).getDate()
+  const prevLast = `${prevYear}-${String(prevMonthIndex + 1).padStart(2, '0')}-${lastDay}`
 
-    if (existing.length === 0) {
-      // Pobierz wzorce z poprzedniego miesiąca
-      const prevFirst = new Date(year, month - 2, 1).toISOString().slice(0, 10)
-      const prevLast = new Date(year, month - 1, 0).toISOString().slice(0, 10)
+  // Pobierz zadania z poprzedniego miesiąca
+  const { data: prevTasks, error } = await supabase
+    .from('organizational_monthly_tasks')
+    .select('*')
+    .gte('date', prevFirst)
+    .lte('date', prevLast)
 
-      const { data: prevTasks, error: err2 } = await supabase
-        .from('organizational_monthly_tasks')
-        .select('*')
-        .gte('date', prevFirst)
-        .lte('date', prevLast)
-        .eq('recurring', true)
-
-      if (err2) {
-        console.error('Błąd pobierania zadań cyklicznych:', err2)
-        return
-      }
-
-      if (prevTasks.length > 0) {
-        const newTasks = prevTasks.map(t => ({
-          date: firstDay,
-          name: t.name,
-          note: t.note,
-          done: false,
-          recurring: true
-        }))
-        const { error: err3 } = await supabase
-          .from('organizational_monthly_tasks')
-          .insert(newTasks)
-        if (err3) console.error('Błąd dodawania nowych zadań:', err3)
-      }
-    }
+  if (error) {
+    console.error('Błąd pobierania zadań z poprzedniego miesiąca:', error)
+    return
   }
 
-  return { items, loading, fetchAll, add, update, remove, markDone, ensureRecurringTasksForMonth }
+  if (!prevTasks.length) {
+    console.log('Brak zadań do skopiowania')
+    return
+  }
+
+  // Tworzymy nowe zadania z zachowaniem dnia
+  const newTasks = prevTasks.map(t => {
+    const originalDay = new Date(t.date).getDate()
+    const newDate = `${year}-${String(month).padStart(2, '0')}-${String(originalDay).padStart(2, '0')}`
+    return {
+      date: newDate,
+      name: t.name,
+      note: t.note,
+      recurring: t.recurring,
+      done: false
+    }
+  })
+
+  const { error: insertError } = await supabase
+    .from('organizational_monthly_tasks')
+    .insert(newTasks)
+
+  if (insertError) {
+    console.error('Błąd dodawania nowych zadań:', insertError)
+  } else {
+    await fetchAll()
+  }
+}
+
+
+
+  return {
+    items,
+    loading,
+    fetchAll,
+    add,
+    update,
+    remove,
+    markDone,
+    copyFromPreviousMonth // <- tu dodajemy do return
+  }
 })
