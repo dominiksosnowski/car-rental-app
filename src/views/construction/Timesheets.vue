@@ -110,6 +110,10 @@
       <v-icon small color="orange" class="mr-1">mdi-clock</v-icon>
       Godziny: <strong>{{ Number(entry.hours).toFixed(2) }} h</strong>
     </div>
+      <div class="d-flex align-center">
+      <v-icon small color="grey" class="mr-1">mdi-note</v-icon>
+      Notatka: <strong>{{ entry.note}} </strong>
+    </div>
             <div class="d-flex justify-end mt-2">
           <v-btn
             color="error"

@@ -27,8 +27,11 @@
           Czas pracy
         </v-btn>
 
-        <!-- NOWY przycisk: Dashboard projektów -->
-
+        <!-- NOWY przycisk: Koszty -->
+        <v-btn text :to="{ name: 'ConstructionCosts' }">
+          <v-icon start>mdi-cash-multiple</v-icon>
+          Koszty
+        </v-btn>
 
         <!-- Projekty (lista/zarządzanie) -->
         <v-btn text :to="{ name: 'ProjectsView' }">
@@ -40,10 +43,12 @@
           <v-icon start>mdi-cash-fast</v-icon>
           Zaliczki
         </v-btn>
+
         <v-btn text :to="{ name: 'ConstructionPayroll' }">
           <v-icon start>mdi-cash</v-icon>
           Wypłaty
         </v-btn>
+
         <v-btn text :to="{ name: 'ConstructionEmployees' }">
           <v-icon start>mdi-account-group</v-icon>
           Pracownicy
@@ -80,8 +85,13 @@
           <v-list-item-title>Czas pracy</v-list-item-title>
         </v-list-item>
 
-        <!-- NOWA pozycja: Dashboard projektów -->
-
+        <!-- NOWA pozycja: Koszty -->
+        <v-list-item :to="{ name: 'ConstructionCosts' }" @click="drawer = false">
+          <v-list-item-icon>
+            <v-icon color="purple">mdi-cash-multiple</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>Koszty</v-list-item-title>
+        </v-list-item>
 
         <!-- Projekty (lista/zarządzanie) -->
         <v-list-item :to="{ name: 'ProjectsView' }" @click="drawer = false">

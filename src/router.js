@@ -1,25 +1,29 @@
+// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 
 import Login from '@/views/Login.vue'
 import Dashboard from '@/views/Dashboard.vue'
+
+// Rental
 import Rental from '@/views/Rental.vue'
-import Vehicles    from '@/views/rental/Vehicles.vue'
-import Rentals     from '@/views/rental/Rentals.vue'
-import Repairs     from '@/views/rental/Repairs.vue'
+import Vehicles from '@/views/rental/Vehicles.vue'
+import Rentals from '@/views/rental/Rentals.vue'
+import Repairs from '@/views/rental/Repairs.vue'
 import Reservations from '@/views/rental/Reservations.vue'
 import ArchivedRentals from '@/views/rental/ArchivedRentals.vue'
 import RentalDashboard from '@/views/rental/RentalDashboard.vue'
 import ArchivedVehicles from '@/views/rental/ArchivedVehicles.vue'
 
+// Workshop
 import Workshop from '@/views/Workshop.vue'
 import WorkshopDashboard from '@/views/workshop/WorkshopDashboard.vue'
-import WorkshopScheduled   from '@/views/workshop/WorkshopScheduled.vue'
-import ActiveRepairs  from '@/views/workshop/ActiveRepairs.vue'
-import CompletedRepairs   from '@/views/workshop/CompletedRepairs.vue'
-import WorkshopPayments    from '@/views/workshop/WorkshopPayments.vue'
+import WorkshopScheduled from '@/views/workshop/WorkshopScheduled.vue'
+import ActiveRepairs from '@/views/workshop/ActiveRepairs.vue'
+import CompletedRepairs from '@/views/workshop/CompletedRepairs.vue'
+import WorkshopPayments from '@/views/workshop/WorkshopPayments.vue'
 
-// Nowy import modułu construction
+// Construction
 import ConstructionLayout from '@/views/construction/ConstructionLayout.vue'
 import Employees from '@/views/construction/Employees.vue'
 import Timesheets from '@/views/construction/Timesheets.vue'
@@ -27,6 +31,7 @@ import Advances from '@/views/construction/Advances.vue'
 import Payroll from '@/views/construction/Payroll.vue'
 import ProjectsView from '@/views/construction/ProjectsView.vue'
 import ProjectsDashboard from '@/views/construction/ProjectsDashboard.vue'
+import ConstructionCostsView from '@/views/construction/ConstructionCostsView.vue'
 
 // Organizational
 import OrganizationalPanel from '@/views/OrganizationalPanel.vue'
@@ -36,6 +41,9 @@ import OrganizationalMoneyGiven from '@/views/organizational/OrganizationalMoney
 import OrganizationalDone from '@/views/organizational/OrganizationalDone.vue'
 import OrganizationalMonthlyTasks from '@/views/organizational/OrganizationalMonthlyTasks.vue'
 
+// Restaurant
+import RestaurantLayout from '@/views/restaurant/RestaurantLayout.vue'
+
 const routes = [
   {
     path: '/',
@@ -44,7 +52,7 @@ const routes = [
       return user ? '/dashboard' : '/login'
     }
   },
-  { path: '/login', name: 'Login', component: Login },
+  { path: '/login',  name: 'Login',   component: Login },
   { path: '/dashboard', name: 'Dashboard', component: Dashboard, meta: { requiresAuth: true } },
 
   {
@@ -54,10 +62,10 @@ const routes = [
     meta: { requiresAuth: true },
     redirect: '/rental/RentalDashboard',
     children: [
-      { path: 'vehicles', name: 'Vehicles', component: Vehicles },
-      { path: 'rentals', name: 'Rentals', component: Rentals },
-      { path: 'repairs', name: 'Repairs', component: Repairs },
-      { path: 'reservations', name: 'Reservations', component: Reservations },
+      { path: 'vehicles',       name: 'Vehicles',       component: Vehicles },
+      { path: 'rentals',        name: 'Rentals',        component: Rentals },
+      { path: 'repairs',        name: 'Repairs',        component: Repairs },
+      { path: 'reservations',   name: 'Reservations',   component: Reservations },
       { path: 'ArchivedRentals', name: 'ArchivedRentals', component: ArchivedRentals },
       { path: 'RentalDashboard', name: 'RentalDashboard', component: RentalDashboard },
       { path: 'ArchivedVehicles', name: 'ArchivedVehicles', component: ArchivedVehicles }
@@ -72,35 +80,29 @@ const routes = [
     redirect: '/workshop/WorkshopDashboard',
     children: [
       { path: 'WorkshopDashboard', name: 'WorkshopDashboard', component: WorkshopDashboard },
-      { path: 'scheduled', name: 'WorkshopScheduled', component: WorkshopScheduled },
-      { path: 'in-progress', name: 'ActiveRepairs', component: ActiveRepairs },
-      { path: 'completed', name: 'CompletedRepairs', component: CompletedRepairs },
-      { path: 'payments', name: 'WorkshopPayments', component: WorkshopPayments }
+      { path: 'scheduled',         name: 'WorkshopScheduled',  component: WorkshopScheduled },
+      { path: 'in-progress',       name: 'ActiveRepairs',      component: ActiveRepairs },
+      { path: 'completed',         name: 'CompletedRepairs',   component: CompletedRepairs },
+      { path: 'payments',          name: 'WorkshopPayments',   component: WorkshopPayments }
     ]
   },
 
-// Nowy moduł construction
-{
-  path: '/construction',
-  name: 'ConstructionLayout',
-  component: ConstructionLayout,
-  meta: { requiresAuth: true },
-
-  // zmieniony redirect
-  redirect: '/construction/projects-dashboard',
-
-  children: [
-    { path: 'employees', name: 'ConstructionEmployees', component: Employees },
-    { path: 'timesheets', name: 'ConstructionTimesheets', component: Timesheets },
-
-    // nowa trasa do dashboardu projektów
-    { path: 'projects-dashboard', name: 'ProjectsDashboard', component: ProjectsDashboard },
-
-    { path: 'projects', name: 'ProjectsView', component: ProjectsView },
-    { path: 'advances', name: 'ConstructionAdvances', component: Advances },
-    { path: 'payroll', name: 'ConstructionPayroll', component: Payroll }
-  ]
-},
+  {
+    path: '/construction',
+    name: 'ConstructionLayout',
+    component: ConstructionLayout,
+    meta: { requiresAuth: true },
+    redirect: '/construction/projects-dashboard',
+    children: [
+      { path: 'employees',           name: 'ConstructionEmployees',    component: Employees },
+      { path: 'timesheets',          name: 'ConstructionTimesheets',   component: Timesheets },
+      { path: 'projects-dashboard',  name: 'ProjectsDashboard',        component: ProjectsDashboard },
+      { path: 'projects',            name: 'ProjectsView',             component: ProjectsView },
+      { path: 'advances',            name: 'ConstructionAdvances',     component: Advances },
+      { path: 'payroll',             name: 'ConstructionPayroll',      component: Payroll },
+      { path: 'costs',               name: 'ConstructionCosts',        component: ConstructionCostsView }
+    ]
+  },
 
   {
     path: '/organizational',
@@ -109,26 +111,35 @@ const routes = [
     meta: { requiresAuth: true },
     redirect: '/organizational/home',
     children: [
-      { path: 'home', name: 'OrganizationalHome', component: OrganizationalHome },
-      { path: 'todo', name: 'OrganizationalTodo', component: OrganizationalTodo },
-      { path: 'money-given', name: 'OrganizationalMoneyGiven', component: OrganizationalMoneyGiven },
-      { path: 'done', name: 'OrganizationalDone', component: OrganizationalDone },
-      { path: 'monthly-tasks', name: 'OrganizationalMonthlyTasks', component: OrganizationalMonthlyTasks }
+      { path: 'home',           name: 'OrganizationalHome',          component: OrganizationalHome },
+      { path: 'todo',           name: 'OrganizationalTodo',          component: OrganizationalTodo },
+      { path: 'money-given',    name: 'OrganizationalMoneyGiven',    component: OrganizationalMoneyGiven },
+      { path: 'done',           name: 'OrganizationalDone',          component: OrganizationalDone },
+      { path: 'monthly-tasks',  name: 'OrganizationalMonthlyTasks',  component: OrganizationalMonthlyTasks }
     ]
   },
 
   {
     path: '/restaurant',
     name: 'RestaurantLayout',
+    component: RestaurantLayout,
     meta: { requiresAuth: true },
-    component: () => import('@/views/restaurant/RestaurantLayout.vue'),
     redirect: { name: 'RestaurantEvents' },
     children: [
-      { path: 'events', name: 'RestaurantEvents', component: () => import('@/views/restaurant/RestaurantEvents.vue') },
-      { path: 'past', name: 'RestaurantPast', component: () => import('@/views/restaurant/RestaurantPast.vue') }
+      {
+        path: 'events',
+        name: 'RestaurantEvents',
+        component: () => import('@/views/restaurant/RestaurantEvents.vue')
+      },
+      {
+        path: 'past',
+        name: 'RestaurantPast',
+        component: () => import('@/views/restaurant/RestaurantPast.vue')
+      }
     ]
   },
 
+  // catch-all
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ]
 
