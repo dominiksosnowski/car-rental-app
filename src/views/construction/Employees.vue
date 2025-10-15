@@ -81,7 +81,12 @@
                     {{ formatDate(item.medical_exam_date) }}
                   </span>
                 </div>
-
+                <div>
+                  <strong>BHP:</strong>
+                  <span :style="getDateStyle(item.bhp_exam_date)">
+                    {{ formatDate(item.bhp_exam_date) }}
+                  </span>
+                </div>
                 <div>
                   <strong>Koniec umowy:</strong>
                   <span :style="getDateStyle(item.contract_end_date)">
@@ -178,7 +183,11 @@
     </span>
   </template>
 
-
+  <template #item.bhp_exam_date="{ value }">
+    <span :style="getDateStyle(value)">
+      {{ formatDate(value) }}
+    </span>
+  </template>
 
   <!-- Data końca umowy -->
   <template #item.contract_end_date="{ value }">
@@ -188,34 +197,35 @@
   </template>
 
 <template #item.medical_doc="{ item }">
-  <div v-if="item.medicalDoc" class="d-flex flex-column ga-1">
+  <div v-if="item.medicalDoc" class="d-flex flex-row ga-2">
+    <!-- Pobierz pełny przycisk -->
     <v-btn
       color="green"
       size="small"
-      block
       @click="downloadDocument(item.medicalDoc.file_path)"
     >
       <v-icon start>mdi-download</v-icon>
       Pobierz
     </v-btn>
 
+    <!-- Usuń tylko ikona z potwierdzeniem -->
     <v-btn
-      color="red"
+      variant="tonal"
       size="small"
-      block
-      @click="deleteDocument(item.medicalDoc.id, item.medicalDoc.file_path, item.id, 'medical')"
+      color="red"
+      @click="confirmDeleteMedical(item)"
     >
-      <v-icon start>mdi-delete</v-icon>
-      Usuń
+      <v-icon>mdi-delete</v-icon>
     </v-btn>
   </div>
 
-  <div v-else class="d-flex flex-column">
+  <div v-else class="d-flex flex-row ga-2">
     <v-btn
       color="primary"
+      size="small"
       @click="$refs[`fileInput-medical-${item.id}`].click()"
     >
-      <v-icon>mdi-upload</v-icon>
+      <v-icon start>mdi-upload</v-icon>
       Dodaj
     </v-btn>
     <input
@@ -235,35 +245,37 @@
 </template>
 
 
+
 <template #item.bhp_doc="{ item }">
-  <div v-if="item.bhpDoc" class="d-flex flex-column ga-2">
+  <div v-if="item.bhpDoc" class="d-flex flex-row ga-2">
+    <!-- Pobierz pełny przycisk -->
     <v-btn
-    size="small"
+      size="small"
       color="green"
-      block
       @click="downloadDocument(item.bhpDoc.file_path)"
     >
       <v-icon start>mdi-download</v-icon>
       Pobierz
     </v-btn>
 
+    <!-- Usuń tylko ikona z potwierdzeniem -->
     <v-btn
-      color="red"
+      variant="tonal"
       size="small"
-      block
-      @click="deleteDocument(item.bhpDoc.id, item.bhpDoc.file_path, item.id, 'bhp')"
+      color="red"
+      @click="confirmDelete(item)"
     >
-      <v-icon start>mdi-delete</v-icon>
-      Usuń
+      <v-icon>mdi-delete</v-icon>
     </v-btn>
   </div>
 
-  <div v-else class="d-flex flex-column ga-2">
+  <div v-else class="d-flex flex-row ga-2">
     <v-btn
       color="primary"
+      size="small"
       @click="$refs[`fileInput-bhp-${item.id}`].click()"
     >
-      <v-icon>mdi-upload</v-icon>
+      <v-icon start>mdi-upload</v-icon>
       Dodaj
     </v-btn>
     <input
@@ -281,9 +293,6 @@
     />
   </div>
 </template>
-
-
-
 
   <!-- Edycja -->
   <template #item.edit="{ item }">
@@ -343,7 +352,11 @@
             label="Data badań lekarskich"
             type="date"
           />
-
+          <v-text-field
+            v-model="form.bhp_exam_date"
+            label="Data BHP"
+            type="date"
+          />
           <v-text-field
             v-model="form.contract_end_date"
             label="Data końca umowy"
@@ -394,7 +407,8 @@ const headers = [
   { title: 'Nazwisko', key: 'last_name' },
   { title: 'Telefon', key: 'phone' },
   { title: 'Firma', key: 'company_name' },
-  { title: 'Data badań lekarskich', key: 'medical_exam_date' },
+  { title: 'Data badań', key: 'medical_exam_date' },
+  { title: 'Data BHP', key: 'bhp_exam_date' },
   { title: 'Koniec umowy', key: 'contract_end_date' },
   { title: 'Dok. badań', key: 'medical_doc', sortable: false },
   { title: 'Dok. BHP', key: 'bhp_doc', sortable: false },
@@ -682,6 +696,18 @@ const snackbar = ref({
 
 function showSnackbar(message, color = 'success') {
   snackbar.value = { show: true, text: message, color }
+}
+
+function confirmDelete(item) {
+  if (confirm('Na pewno usunąć dokument?')) {
+    deleteDocument(item.bhpDoc.id, item.bhpDoc.file_path, item.id, 'bhp')
+  }
+}
+
+function confirmDeleteMedical(item) {
+  if (confirm('Na pewno usunąć dokument medyczny?')) {
+    deleteDocument(item.medicalDoc.id, item.medicalDoc.file_path, item.id, 'medical')
+  }
 }
 
 </script>
