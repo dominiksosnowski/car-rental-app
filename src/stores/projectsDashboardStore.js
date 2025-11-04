@@ -5,6 +5,7 @@ export const useProjectsDashboardStore = defineStore('projectsDashboard', {
   state: () => ({
     rowsAllTime: [],
     rowsMonth: [],
+    rowsDay: [],        // 👈 nowa tabela dla godzin danego dnia
     loading: false,
     error: null
   }),
@@ -88,6 +89,47 @@ export const useProjectsDashboardStore = defineStore('projectsDashboard', {
       } finally {
         this.loading = false
       }
-    }
+    },
+
+    // 👇 NOWA AKCJA: godziny danego dnia
+async fetchDayHours(date) {
+  this.loading = true
+  this.error = null
+  try {
+    const { data: entries, error } = await supabase
+      .from('time_entries')
+      .select(`
+        id,
+        hours,
+        work_date,
+        note,
+        employee:employees (id, first_name, last_name),
+        project:projects (id, name, location)
+      `)
+      .eq('work_date', date)   // date w formacie 'YYYY-MM-DD'
+
+    if (error) throw error
+
+    this.rowsDay = entries.map(e => ({
+      id: e.id,
+      employee_id: e.employee?.id,
+      employee: e.employee
+        ? `${e.employee.first_name} ${e.employee.last_name}`
+        : 'Nieznany',
+      project_id: e.project?.id,
+      project: e.project?.name || 'Brak',
+      location: e.project?.location || 'Brak',
+      hours: Number(e.hours) || 0,
+      note: e.note || ''
+    }))
+  } catch (err) {
+    console.error('Błąd pobierania godzin dnia:', err)
+    this.error = err.message
+  } finally {
+    this.loading = false
+  }
+}
+
+
   }
 })

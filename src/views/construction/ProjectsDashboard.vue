@@ -72,6 +72,59 @@
         </template>
       </v-data-table>
     </v-card>
+    <v-card class="mt-6">
+  <v-card-title>
+    Godziny danego dnia –
+    {{ day ? new Intl.DateTimeFormat('pl-PL').format(new Date(day)) : 'wybierz datę' }}
+  </v-card-title>
+
+
+  <!-- Wybór dnia -->
+  <v-date-picker
+    v-model="day"
+    :max="new Date().toISOString().slice(0,10)"
+    color="primary"
+    class="ma-4"
+  />
+
+  <!-- Tabela -->
+<v-data-table
+  :headers="headersDay"
+  :items="rowsDayExpanded"
+  :loading="loading"
+   :items-per-page="50"
+  density="compact"
+>
+ <template #item="{ item, columns }">
+    <tr :class="{ 'bg-blue-darken-3 text-white': item.isTotal }">
+      <td v-for="col in columns" :key="col.key">
+        <span :class="{ 'font-weight-bold': item.isTotal }">
+          {{ item[col.key] }} <span v-if="col.key === 'hours'">h</span>
+        </span>
+      </td>
+    </tr>
+  </template>
+  <template #item.employee="{ item }">
+    <span :class="{ 'font-weight-bold': item.isTotal }">
+      {{ item.employee }}
+    </span>
+  </template>
+
+  <template #item.project="{ item }">
+    <span :class="{ 'font-weight-bold': item.isTotal }">
+      {{ item.project }}
+    </span>
+  </template>
+
+  <template #item.hours="{ item }">
+    <span :class="{ 'font-weight-bold': item.isTotal }">
+      {{ item.hours }} h
+    </span>
+  </template>
+</v-data-table>
+
+</v-card>
+
   </v-container>
 </template>
 
@@ -178,6 +231,67 @@ const headers = [
 function formatCurrency(v, currency = 'PLN') {
   return new Intl.NumberFormat('pl-PL', { style: 'currency', currency }).format(Number(v || 0))
 }
+
+const day = ref(null)
+
+// Dane z backendu (np. store.rowsDay)
+const rowsDay = computed(() =>
+  Array.isArray(store.rowsDay) ? store.rowsDay : []
+)
+
+// Rozszerzone dane z sumą godzin w miejscu pracy
+const rowsDayExpanded = computed(() => {
+  const grouped = {}
+
+  // grupowanie po projekcie
+  rowsDay.value.forEach(r => {
+    if (!grouped[r.project]) grouped[r.project] = []
+    grouped[r.project].push(r)
+  })
+
+  const result = []
+  for (const [project, entries] of Object.entries(grouped)) {
+    let total = 0
+    // dodajemy wpisy pracowników
+    entries.forEach(e => {
+      result.push({
+        employee: e.employee,
+        project: project,
+        hours: e.hours,
+        isTotal: false
+      })
+      total += e.hours
+    })
+    // dodajemy sumę dla projektu
+    result.push({
+      employee: 'Łącznie',
+      project: project,
+      hours: total,
+      isTotal: true
+    })
+  }
+  return result
+})
+
+
+const headersDay = [
+  { title: 'Pracownik', key: 'employee' },
+  { title: 'Projekt', key: 'project' },
+  { title: 'Godziny', key: 'hours', align: 'end' }
+]
+
+watch(day, async (d) => {
+  if (d) {
+    // jeśli v-date-picker zwraca obiekt Date
+    const iso = typeof d === 'string'
+      ? d
+      : new Date(d).toISOString().slice(0, 10)
+
+    await store.fetchDayHours(iso)
+  }
+})
+
+
 </script>
 
 <style scoped>
