@@ -227,7 +227,12 @@
     </v-card-text>
   </v-card>
 </v-dialog>
-
+<v-snackbar v-model="snackbar" color="success" timeout="3000">
+  {{ snackbarMessage }}
+  <template #actions>
+    <v-btn color="white" text @click="snackbar = false">OK</v-btn>
+  </template>
+</v-snackbar>
 
 </template>
 
@@ -320,23 +325,33 @@ async function reload() {
   await timesheets.fetchForRange(range.value.start, range.value.end)
 }
 
+const snackbar = ref(false)
+const snackbarMessage = ref('')
+
 async function save() {
   const { valid } = await formRef.value.validate()
   if (!valid) return
 
   saving.value = true
 
-  if (editingId.value) {
-    await timesheets.update(editingId.value, { ...form.value })
-  } else {
-    await timesheets.add({ ...form.value })
-  }
+  try {
+    if (editingId.value) {
+      await timesheets.update(editingId.value, { ...form.value })
+      snackbarMessage.value = 'Wpis został zaktualizowany'
+    } else {
+      await timesheets.add({ ...form.value })
+      snackbarMessage.value = 'Wpis został dodany'
+    }
 
-  saving.value = false
-  dialog.value = false
-  editingId.value = null
-  await reload()
+    snackbar.value = true
+    await reload()
+  } finally {
+    saving.value = false
+    // UWAGA: dialog zostaje otwarty, dane w formularzu zostają
+    // editingId.value = null // możesz wyzerować, jeśli chcesz przejść w tryb "dodawania"
+  }
 }
+
 
 
 
