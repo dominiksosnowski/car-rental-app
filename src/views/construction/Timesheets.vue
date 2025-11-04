@@ -26,15 +26,16 @@
 
 <v-row class="d-flex align-center justify-md-space-between">
      <v-card-title class="d-flex align-center justify-end">
-        <v-btn
+      <v-btn
         color="primary"
-        :block="$vuetify.display.smAndDown"
         size="large"
+        class="fixed-btn"
         @click="openDialog"
       >
-    <v-icon start>mdi-calendar-plus</v-icon>
+        <v-icon start>mdi-calendar-plus</v-icon>
         Dodaj wpis
       </v-btn>
+
     </v-card-title>
 <v-btn @click="toggleExpandAll" color="primary" size="large">
   {{ expandAll ? 'Zwiń wszystkie' : 'Rozwiń wszystkie' }}
@@ -463,4 +464,11 @@ const activeEmployees = computed(() =>
   min-width: 180px;
   text-align: center;
 }
+.fixed-btn {
+  position: fixed;
+  top: 17.5vh;   /* odstęp od dołu */
+  left: 3vw;    /* odstęp od prawej */
+  z-index: 1000;  /* żeby był nad innymi elementami */
+}
+
 </style>
