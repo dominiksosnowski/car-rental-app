@@ -80,12 +80,13 @@
 
 
   <!-- Wybór dnia -->
-  <v-date-picker
-    v-model="day"
-    :max="new Date().toISOString().slice(0,10)"
-    color="primary"
-    class="ma-4"
-  />
+<input
+  type="date"
+  v-model="day"
+  :max="new Date().toISOString().slice(0,10)"
+  class="ma-4 pa-2 border rounded"
+/>
+
 
   <!-- Tabela -->
 <v-data-table
