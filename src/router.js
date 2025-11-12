@@ -14,6 +14,7 @@ import Reservations from '@/views/rental/Reservations.vue'
 import ArchivedRentals from '@/views/rental/ArchivedRentals.vue'
 import RentalDashboard from '@/views/rental/RentalDashboard.vue'
 import ArchivedVehicles from '@/views/rental/ArchivedVehicles.vue'
+import Payments from '@/views/rental/Payments.vue'
 
 // Workshop
 import Workshop from '@/views/Workshop.vue'
@@ -68,10 +69,10 @@ const routes = [
       { path: 'reservations',   name: 'Reservations',   component: Reservations },
       { path: 'ArchivedRentals', name: 'ArchivedRentals', component: ArchivedRentals },
       { path: 'RentalDashboard', name: 'RentalDashboard', component: RentalDashboard },
-      { path: 'ArchivedVehicles', name: 'ArchivedVehicles', component: ArchivedVehicles }
+      { path: 'ArchivedVehicles', name: 'ArchivedVehicles', component: ArchivedVehicles },
+      { path: 'Payments', name: 'Payments', component: Payments }
     ]
   },
-
   {
     path: '/workshop',
     name: 'Workshop',

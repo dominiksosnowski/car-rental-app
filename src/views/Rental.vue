@@ -28,6 +28,10 @@
           <v-icon start>mdi-key-chain</v-icon>
           Wypożyczenia
         </v-btn>
+        <v-btn text to="/rental/Payments">
+          <v-icon start>mdi-cash-multiple</v-icon>
+          Płatności
+        </v-btn>
         <v-btn text to="/rental/Repairs">
           <v-icon start>mdi-wrench</v-icon>
           Naprawy
@@ -79,6 +83,15 @@
             <v-icon color="orange">mdi-key-chain</v-icon>
           </v-list-item-icon>
           <v-list-item-title>Wypożyczenia</v-list-item-title>
+        </v-list-item>
+
+        <v-divider class="my-2" />
+
+        <v-list-item to="/rental/Payments" @click="drawer = false">
+          <v-list-item-icon>
+            <v-icon color="green">mdi-cash-multiple</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>Płatności</v-list-item-title>
         </v-list-item>
 
         <v-divider class="my-2" />
